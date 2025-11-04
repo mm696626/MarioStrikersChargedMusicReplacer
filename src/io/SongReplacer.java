@@ -52,18 +52,13 @@ public class SongReplacer {
              RandomAccessFile right = new RandomAccessFile(rightFile, "r");
              FileOutputStream out = new FileOutputStream("temp.idsp")) {
 
-            long leftSize = left.length();
-            long rightSize = right.length();
-
-            if (leftSize != rightSize) {
-                System.out.println("Warning: Left and Right DSP files have different sizes!");
-            }
+            long audioSize = left.length();
 
             out.write("IDSP".getBytes("ASCII"));
 
             out.write(new byte[]{0x00, 0x00, 0x6B, 0x40});
 
-            int dataSize = (int)(leftSize - DSP_HEADER_SIZE);
+            int dataSize = (int)(audioSize - DSP_HEADER_SIZE);
             out.write(intToBytesBE(dataSize));
 
             byte[] leftHeader = new byte[DSP_HEADER_SIZE];
