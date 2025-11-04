@@ -484,7 +484,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
     private int getSongIndexFromName(String selectedSong) {
         for (int i=0; i<StrikersChargedSongNames.STRIKERS_CHARGED_SONGS.length; i++) {
             if (selectedSong.equals(StrikersChargedSongNames.STRIKERS_CHARGED_SONGS[i].getSongDisplayName())) {
-                return i;
+                return StrikersChargedSongNames.STRIKERS_CHARGED_SONGS[i].getSongIndex();
             }
         }
 

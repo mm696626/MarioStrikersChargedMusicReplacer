@@ -1,13 +1,14 @@
 package io;
 
+import constants.StrikersChargedSongNames;
 import helpers.OffsetGetter;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.file.Files;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.TreeMap;
 
 public class SongReplacer {
 
@@ -44,7 +45,60 @@ public class SongReplacer {
             nlxwbRaf.write(idspFileBytes);
         }
 
+        logSongReplacement(songIndex, leftChannelFile, rightChannelFile, nlxwbFile.getAbsolutePath());
+
         return true;
+    }
+
+    private static void logSongReplacement(int songIndex, File leftChannel, File rightChannel, String nlxwbFilePath) {
+        File songReplacementsFolder = new File("song_replacements");
+        if (!songReplacementsFolder.exists()) {
+            songReplacementsFolder.mkdirs();
+        }
+
+        File logFile;
+
+        String hash = Integer.toHexString(nlxwbFilePath.hashCode());
+        String baseFileName = "Strikers Charged" + "_" + hash;
+        logFile = new File("song_replacements", baseFileName + ".txt");
+
+        Map<String, String> songMap = new TreeMap<>();
+
+        if (logFile.exists()) {
+            try (Scanner inputStream = new Scanner(new FileInputStream(logFile))) {
+                while (inputStream.hasNextLine()) {
+                    String line = inputStream.nextLine();
+                    String[] parts = line.split("\\|");
+
+                    if (parts.length >= 3) {
+                        String existingSongName = parts[0];
+                        String left = parts[1];
+                        String right = parts[2];
+                        songMap.put(existingSongName, left + "|" + right);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        String songName = "";
+
+        for (int i=0; i< StrikersChargedSongNames.STRIKERS_CHARGED_SONGS.length; i++) {
+            if (songIndex == StrikersChargedSongNames.STRIKERS_CHARGED_SONGS[i].getSongIndex()) {
+                songName = StrikersChargedSongNames.STRIKERS_CHARGED_SONGS[i].getSongDisplayName();
+            }
+        }
+
+        songMap.put(songName, leftChannel.getName() + "|" + rightChannel.getName());
+
+        try (PrintWriter outputStream = new PrintWriter(new FileOutputStream(logFile))) {
+            for (Map.Entry<String, String> entry : songMap.entrySet()) {
+                outputStream.println(entry.getKey() + "|" + entry.getValue());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void createIDSP(File leftFile, File rightFile) throws IOException {
