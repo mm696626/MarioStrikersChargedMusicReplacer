@@ -6,6 +6,7 @@ import helpers.OffsetGetter;
 import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.TreeMap;
@@ -17,17 +18,17 @@ public class SongReplacer {
 
 
     public static boolean replaceSong(File nlxwbFile, File leftChannelFile, File rightChannelFile, int songIndex) throws IOException {
-        int[] songOffsets = OffsetGetter.findIDSPOffsets(Files.readAllBytes(nlxwbFile.toPath()));
+        ArrayList<Integer> songOffsets = OffsetGetter.findIDSPOffsets(Files.readAllBytes(nlxwbFile.toPath()));
 
         createIDSP(leftChannelFile, rightChannelFile);
 
         int allowedFileSize;
 
-        if (songIndex + 1 >= songOffsets.length) {
-            allowedFileSize = (int)nlxwbFile.length() - songOffsets[songIndex];
+        if (songIndex + 1 >= songOffsets.size()) {
+            allowedFileSize = (int)nlxwbFile.length() - songOffsets.get(songIndex);
         }
         else {
-            allowedFileSize = songOffsets[songIndex+1] - songOffsets[songIndex];
+            allowedFileSize = songOffsets.get(songIndex+1) - songOffsets.get(songIndex);
         }
 
         File idspFile = new File("temp.idsp");
@@ -41,7 +42,7 @@ public class SongReplacer {
         byte[] idspFileBytes = Files.readAllBytes(idspFile.toPath());
 
         try (RandomAccessFile nlxwbRaf = new RandomAccessFile(nlxwbFile, "rw")) {
-            nlxwbRaf.seek(songOffsets[songIndex]);
+            nlxwbRaf.seek(songOffsets.get(songIndex));
             nlxwbRaf.write(idspFileBytes);
         }
 
