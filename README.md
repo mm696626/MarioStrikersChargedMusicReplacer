@@ -30,4 +30,4 @@
 ### Special Thanks/Credits
 * This documentation on the IDSP header and DSP format helped a lot too
     * https://www.metroid2002.com/retromodding/wiki/DSP_(File_Format)
-    * https://github.com/vgmstream/vgmstream/blob/master/src/meta/ngc_dsp_std
+    * https://github.com/vgmstream/vgmstream/blob/master/src/meta/ngc_dsp_std.c
