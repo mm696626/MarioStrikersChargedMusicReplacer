@@ -11,24 +11,24 @@ import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class MarioStrikersChargedMusicReplacerUI extends JFrame implements ActionListener {
 
-    private JButton pickLeftChannel, pickRightChannel, generateSTM;
+    private JButton pickLeftChannel, pickRightChannel, dumpAllSongs, replaceSong, selectNLXWB;
     private String leftChannelPath = "";
     private String rightChannelPath = "";
 
     private File savedDSPFolder;
-    private File savedOutputFolder;
-    private File defaultSavedDSPFolder;
-    private File defaultOutputFolder;
+
+    private String nlxwbPath;
 
     private JLabel leftChannelLabel;
     private JLabel rightChannelLabel;
-    private JLabel defaultDSPFolderLabel;
-    private JLabel defaultOutputFolderLabel;
+    private JLabel nlxwbFilePathLabel;
 
     private JComboBox<String> songSelector;
 
@@ -37,17 +37,14 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
     private JButton addToQueueButton, removeQueueButton, clearQueueButton, runBatchButton;
 
     private JCheckBox autoAddToQueue;
-    private JCheckBox deleteDSPAfterGenerate;
+    private JCheckBox deleteDSPAfterReplace;
 
     public MarioStrikersChargedMusicReplacerUI() {
         setTitle("Mario Strikers Charged Music Replacer");
-        initSettingsFile();
-        loadSettingsFile();
         generateUI();
     }
 
     private void generateUI() {
-        JTabbedPane tabbedPane = new JTabbedPane();
 
         JPanel musicReplacerPanel = new JPanel();
         musicReplacerPanel.setLayout(new BoxLayout(musicReplacerPanel, BoxLayout.Y_AXIS));
@@ -116,11 +113,11 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             }
         });
 
-        JPanel stmPanel = new JPanel(new GridBagLayout());
-        stmPanel.setBorder(BorderFactory.createTitledBorder("DumpModify Songs"));
-        GridBagConstraints stmGBC = new GridBagConstraints();
-        stmGBC.insets = new Insets(5, 5, 5, 5);
-        stmGBC.fill = GridBagConstraints.HORIZONTAL;
+        JPanel dumpModifyPanel = new JPanel(new GridBagLayout());
+        dumpModifyPanel.setBorder(BorderFactory.createTitledBorder("Dump/Modify Songs"));
+        GridBagConstraints dumpModifyGBC = new GridBagConstraints();
+        dumpModifyGBC.insets = new Insets(5, 5, 5, 5);
+        dumpModifyGBC.fill = GridBagConstraints.HORIZONTAL;
 
         pickLeftChannel = new JButton("Select Left DSP Channel");
         pickLeftChannel.addActionListener(this);
@@ -130,36 +127,53 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         pickRightChannel.addActionListener(this);
         rightChannelLabel = new JLabel("No file selected");
 
-        generateSTM = new JButton("Generate STM");
-        generateSTM.addActionListener(this);
+        dumpAllSongs = new JButton("Dump All Songs");
+        dumpAllSongs.addActionListener(this);
 
-        stmGBC.gridx = 0; stmGBC.gridy = 0;
-        stmPanel.add(pickLeftChannel, stmGBC);
-        stmGBC.gridx = 1;
-        stmPanel.add(leftChannelLabel, stmGBC);
+        replaceSong = new JButton("Replace Song");
+        replaceSong.addActionListener(this);
 
-        stmGBC.gridx = 0; stmGBC.gridy = 1;
-        stmPanel.add(pickRightChannel, stmGBC);
-        stmGBC.gridx = 1;
-        stmPanel.add(rightChannelLabel, stmGBC);
+        selectNLXWB = new JButton("Select NLXWB");
+        selectNLXWB.addActionListener(this);
 
-        stmGBC.gridx = 0; stmGBC.gridy = 2;
-        stmPanel.add(generateSTM, stmGBC);
+        nlxwbFilePathLabel = new JLabel("No NLXWB file selected");
+
+        dumpModifyGBC.gridx = 0; dumpModifyGBC.gridy = 0;
+        dumpModifyPanel.add(pickLeftChannel, dumpModifyGBC);
+        dumpModifyGBC.gridx = 1;
+        dumpModifyPanel.add(leftChannelLabel, dumpModifyGBC);
+
+        dumpModifyGBC.gridx = 0; dumpModifyGBC.gridy = 1;
+        dumpModifyPanel.add(pickRightChannel, dumpModifyGBC);
+        dumpModifyGBC.gridx = 1;
+        dumpModifyPanel.add(rightChannelLabel, dumpModifyGBC);
+
+        dumpModifyGBC.gridx = 0; dumpModifyGBC.gridy = 2;
+        dumpModifyPanel.add(dumpAllSongs, dumpModifyGBC);
+
+        dumpModifyGBC.gridx = 1; dumpModifyGBC.gridy = 2;
+        dumpModifyPanel.add(replaceSong, dumpModifyGBC);
+
+        dumpModifyGBC.gridx = 0; dumpModifyGBC.gridy = 3;
+        dumpModifyPanel.add(selectNLXWB, dumpModifyGBC);
+
+        dumpModifyGBC.gridx = 1;
+        dumpModifyPanel.add(nlxwbFilePathLabel, dumpModifyGBC);
 
         autoAddToQueue = new JCheckBox("Automatically Add DSP Pairs from DSP Folder to Queue");
-        stmGBC.gridx = 0; stmGBC.gridy = 3;
-        stmPanel.add(autoAddToQueue, stmGBC);
+        dumpModifyGBC.gridx = 0; dumpModifyGBC.gridy = 4;
+        dumpModifyPanel.add(autoAddToQueue, dumpModifyGBC);
 
-        deleteDSPAfterGenerate = new JCheckBox("Delete Source DSPs after Generation");
-        stmGBC.gridx = 1;
-        stmPanel.add(deleteDSPAfterGenerate, stmGBC);
+        deleteDSPAfterReplace = new JCheckBox("Delete Source DSPs after Replacement");
+        dumpModifyGBC.gridx = 1;
+        dumpModifyPanel.add(deleteDSPAfterReplace, dumpModifyGBC);
 
         musicReplacerPanel.add(songPanel);
         musicReplacerPanel.add(Box.createVerticalStrut(10));
-        musicReplacerPanel.add(stmPanel);
+        musicReplacerPanel.add(dumpModifyPanel);
 
         JPanel queuePanel = new JPanel(new BorderLayout());
-        queuePanel.setBorder(BorderFactory.createTitledBorder("Batch Generation Job Queue"));
+        queuePanel.setBorder(BorderFactory.createTitledBorder("Batch Replacement Job Queue"));
 
         jobQueueModel = new DefaultListModel<>();
         jobQueueList = new JList<>(jobQueueModel);
@@ -188,190 +202,8 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         musicReplacerPanel.add(Box.createVerticalStrut(10));
         musicReplacerPanel.add(queuePanel);
 
-        JPanel settingsPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints settingsGBC = new GridBagConstraints();
-        settingsGBC.insets = new Insets(5, 5, 5, 5);
-        settingsGBC.fill = GridBagConstraints.HORIZONTAL;
-
-        settingsGBC.gridx = 0;
-        settingsGBC.gridy = 0;
-        settingsPanel.add(new JLabel("Default DSP Folder:"), settingsGBC);
-
-        defaultDSPFolderLabel = new JLabel(defaultSavedDSPFolder != null ? defaultSavedDSPFolder.getAbsolutePath() : "None");
-        settingsGBC.gridx = 1;
-        settingsPanel.add(defaultDSPFolderLabel, settingsGBC);
-
-        JButton chooseDefaultDSPButton = new JButton("Change");
-        chooseDefaultDSPButton.addActionListener(e -> chooseDefaultDSPFolder());
-        settingsGBC.gridx = 2;
-        settingsPanel.add(chooseDefaultDSPButton, settingsGBC);
-
-        settingsGBC.gridx = 0;
-        settingsGBC.gridy = 1;
-        settingsPanel.add(new JLabel("Default Output Folder:"), settingsGBC);
-
-        defaultOutputFolderLabel = new JLabel(defaultOutputFolder != null ? defaultOutputFolder.getAbsolutePath() : "None");
-        settingsGBC.gridx = 1;
-        settingsPanel.add(defaultOutputFolderLabel, settingsGBC);
-
-        JButton chooseDefaultOutputFolderButton = new JButton("Change");
-        chooseDefaultOutputFolderButton.addActionListener(e -> chooseDefaultOutputFolder());
-        settingsGBC.gridx = 2;
-        settingsPanel.add(chooseDefaultOutputFolderButton, settingsGBC);
-
-        JButton resetReplacerButton = new JButton("Reset Generator");
-        resetReplacerButton.addActionListener(e -> resetGenerator());
-        settingsGBC.gridx = 0;
-        settingsGBC.gridy = 3;
-        settingsGBC.gridwidth = 3;
-        settingsPanel.add(resetReplacerButton, settingsGBC);
-
-        tabbedPane.addTab("Music Replacer", musicReplacerPanel);
-        tabbedPane.addTab("Settings", settingsPanel);
-
         setLayout(new BorderLayout());
-        add(tabbedPane, BorderLayout.CENTER);
-    }
-
-    private void initSettingsFile() {
-        File settingsFile = new File("settings.txt");
-        PrintWriter outputStream;
-        if (!settingsFile.exists()) {
-            try {
-                outputStream = new PrintWriter(new FileOutputStream(settingsFile));
-            }
-            catch (FileNotFoundException f) {
-                return;
-            }
-
-            outputStream.println("defaultSavedDSPFolder:None");
-            outputStream.println("defaultOutputFolder:None");
-            outputStream.close();
-        }
-    }
-
-    private void loadSettingsFile() {
-        File settingsFile = new File("settings.txt");
-        try (Scanner inputStream = new Scanner(new FileInputStream(settingsFile))) {
-            while (inputStream.hasNextLine()) {
-                String line = inputStream.nextLine();
-                String[] parts = line.split(":", 2);
-                if (parts.length < 2) continue;
-                String key = parts[0];
-                String value = parts[1];
-
-                if (key.equals("defaultSavedDSPFolder")) {
-                    if (!value.equals("None")) defaultSavedDSPFolder = new File(value);
-                }
-                if (key.equals("defaultOutputFolder")) {
-                    if (!value.equals("None")) defaultOutputFolder = new File(value);
-                }
-            }
-
-            if (defaultSavedDSPFolder != null && defaultSavedDSPFolder.exists()) {
-                savedDSPFolder = defaultSavedDSPFolder;
-            }
-
-            if (defaultOutputFolder != null && defaultOutputFolder.exists()) {
-                savedOutputFolder = defaultOutputFolder;
-            }
-        } catch (FileNotFoundException e) {
-            return;
-        }
-    }
-
-    private void chooseDefaultDSPFolder() {
-        JFileChooser defaultDSPFolderChooser = new JFileChooser();
-        defaultDSPFolderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        defaultDSPFolderChooser.setDialogTitle("Select Default DSP Folder");
-        defaultDSPFolderChooser.setAcceptAllFileFilterUsed(false);
-        int result = defaultDSPFolderChooser.showOpenDialog(this);
-
-        if (result == JFileChooser.APPROVE_OPTION) {
-            defaultSavedDSPFolder = defaultDSPFolderChooser.getSelectedFile();
-            defaultDSPFolderLabel.setText(defaultSavedDSPFolder.getAbsolutePath());
-            savedDSPFolder = defaultSavedDSPFolder;
-            saveSettingsToFile();
-        }
-    }
-
-    private void chooseDefaultOutputFolder() {
-        JFileChooser defaultOutputFolderChooser = new JFileChooser();
-        defaultOutputFolderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        defaultOutputFolderChooser.setDialogTitle("Select Default Output Folder");
-        defaultOutputFolderChooser.setAcceptAllFileFilterUsed(false);
-        int result = defaultOutputFolderChooser.showOpenDialog(this);
-
-        if (result == JFileChooser.APPROVE_OPTION) {
-            defaultOutputFolder = defaultOutputFolderChooser.getSelectedFile();
-            defaultOutputFolderLabel.setText(defaultOutputFolder.getAbsolutePath());
-            savedOutputFolder = defaultOutputFolder;
-            saveSettingsToFile();
-        }
-    }
-
-    private void saveSettingsToFile() {
-        try (PrintWriter writer = new PrintWriter(new FileOutputStream("settings.txt"))) {
-            writer.println("defaultSavedDSPFolder:" + (defaultSavedDSPFolder != null ? defaultSavedDSPFolder.getAbsolutePath() : "None"));
-            writer.println("defaultOutputFolder:" + (defaultOutputFolder != null ? defaultOutputFolder.getAbsolutePath() : "None"));
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Failed to save settings: " + e.getMessage());
-        }
-    }
-
-    private void resetGenerator() {
-        int confirm = JOptionPane.showConfirmDialog(
-                this,
-                "Are you sure you want to reset the generator along with the settings?\nThis will reset the generator as if it was never run before.",
-                "Confirm Reset",
-                JOptionPane.YES_NO_OPTION
-        );
-
-        if (confirm != JOptionPane.YES_OPTION) {
-            return;
-        }
-
-        defaultSavedDSPFolder = null;
-
-        if (defaultDSPFolderLabel != null) {
-            defaultDSPFolderLabel.setText("None");
-        }
-
-        defaultOutputFolder = null;
-
-        if (defaultOutputFolderLabel != null) {
-            defaultOutputFolderLabel.setText("None");
-        }
-
-        File songReplacementsFolder = new File("song_replacements");
-
-        if (songReplacementsFolder.exists()) {
-            deleteFolder(songReplacementsFolder);
-        }
-
-        try (PrintWriter writer = new PrintWriter(new FileOutputStream("settings.txt"))) {
-            writer.println("defaultSavedDSPFolder:None");
-            writer.println("defaultOutputFolder:None");
-            writer.println("defaultGame:None");
-
-            JOptionPane.showMessageDialog(this, "Generator has been reset.");
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Failed to reset generator: " + e.getMessage());
-        }
-    }
-
-    public static void deleteFolder(File folder) {
-        File[] files = folder.listFiles();
-        if (files != null) {
-            for (File f : files) {
-                if (f.isDirectory()) {
-                    deleteFolder(f);
-                } else {
-                    f.delete();
-                }
-            }
-        }
-        folder.delete();
+        add(musicReplacerPanel, BorderLayout.CENTER);
     }
 
     private String[] initializeSongArray() {
@@ -382,6 +214,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             initialSongArray[i] = StrikersChargedSongNames.STRIKERS_CHARGED_SONGS[i].getSongDisplayName();
         }
 
+        Arrays.sort(initialSongArray, String.CASE_INSENSITIVE_ORDER);
         return initialSongArray;
     }
 
@@ -549,7 +382,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
         int response = JOptionPane.showConfirmDialog(
                 this,
-                "Would you like to pick a folder of DSPs to select a song from?\n(Your choice will be remembered until closing the program or if you set a default folder)",
+                "Would you like to pick a folder of DSPs to select a song from?\n(Your choice will be remembered until closing the program)",
                 "Choose DSP Folder",
                 JOptionPane.YES_NO_OPTION
         );
@@ -671,6 +504,25 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         return null;
     }
 
+    private void initNLXWBPath() {
+        JFileChooser nlxwbFileChooser = new JFileChooser();
+        nlxwbFileChooser.setDialogTitle("Select NLXWB file");
+        nlxwbFileChooser.setAcceptAllFileFilterUsed(false);
+
+        FileNameExtensionFilter nlxwbFilter = new FileNameExtensionFilter("NLXWB Files", "nlxwb");
+        nlxwbFileChooser.setFileFilter(nlxwbFilter);
+
+        int userSelection = nlxwbFileChooser.showOpenDialog(null);
+
+        if (userSelection != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File selectedNLXWB = nlxwbFileChooser.getSelectedFile();
+        nlxwbPath = selectedNLXWB.getAbsolutePath();
+        nlxwbFilePathLabel.setText("Selected NLXWB: " + nlxwbPath);
+    }
+    
     private void addToQueue() {
         String songFileName = (String) songSelector.getSelectedItem();
         if (songFileName == null || leftChannelPath.isEmpty() || rightChannelPath.isEmpty()) {
@@ -691,7 +543,15 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             chooseRightChannelPath();
         }
 
-        if (e.getSource() == generateSTM) {
+        if (e.getSource() == dumpAllSongs) {
+
+        }
+
+        if (e.getSource() == selectNLXWB) {
+            initNLXWBPath();
+        }
+
+        if (e.getSource() == replaceSong) {
             if (leftChannelPath.isEmpty() || rightChannelPath.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Either the left or right channel wasn't chosen!");
                 return;
@@ -711,25 +571,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
                 return;
             }
 
-
-            File outputDir;
-
-            if (savedOutputFolder != null && savedOutputFolder.exists()) {
-                outputDir = savedOutputFolder;
-            }
-            else {
-                JFileChooser folderChooser = new JFileChooser();
-                folderChooser.setDialogTitle("Select Output Folder");
-                folderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                folderChooser.setAcceptAllFileFilterUsed(false);
-
-                int userSelection = folderChooser.showOpenDialog(this);
-                if (userSelection != JFileChooser.APPROVE_OPTION) {
-                    return;
-                }
-
-                outputDir = folderChooser.getSelectedFile();
-            }
 
             //boolean generatedSuccessfully = STMGenerator.generateSTM(leftChannelFile, rightChannelFile, outputSTMFile, selectedSong, selectedGame, deleteDSPAfterGenerate.isSelected());
 
@@ -757,25 +598,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             if (jobQueueModel.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Queue is empty!");
                 return;
-            }
-
-            File outputDir;
-
-            if (savedOutputFolder != null && savedOutputFolder.exists()) {
-                outputDir = savedOutputFolder;
-            }
-            else {
-                JFileChooser folderChooser = new JFileChooser();
-                folderChooser.setDialogTitle("Select Output Folder");
-                folderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                folderChooser.setAcceptAllFileFilterUsed(false);
-
-                int userSelection = folderChooser.showOpenDialog(this);
-                if (userSelection != JFileChooser.APPROVE_OPTION) {
-                    return;
-                }
-
-                outputDir = folderChooser.getSelectedFile();
             }
 
             for (int i = 0; i < jobQueueModel.size(); i++) {
