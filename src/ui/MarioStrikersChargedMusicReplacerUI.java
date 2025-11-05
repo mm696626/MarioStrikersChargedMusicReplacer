@@ -389,6 +389,14 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             return;
         }
 
+        for (int i = 0; i < jobQueueModel.getSize(); i++) {
+            ReplaceJob job = jobQueueModel.getElementAt(i);
+            if (job.getSongName().equals(songName)) {
+                JOptionPane.showMessageDialog(this, "You already have a job in the queue for this song!");
+                return;
+            }
+        }
+
         jobQueueModel.addElement(new ReplaceJob(songName, leftChannelPath, rightChannelPath));
     }
 
