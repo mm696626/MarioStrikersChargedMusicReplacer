@@ -1,6 +1,6 @@
 package ui;
 
-import constants.StrikersChargedSongNames;
+import constants.StrikersChargedConstants;
 import helpers.DSPPair;
 import helpers.Song;
 import io.SongDumper;
@@ -169,10 +169,10 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
     private String[] initializeSongArray() {
 
-        String[] initialSongArray = new String[StrikersChargedSongNames.STRIKERS_CHARGED_SONGS.length];
+        String[] initialSongArray = new String[StrikersChargedConstants.STRIKERS_CHARGED_SONGS.length];
 
         for (int i=0; i<initialSongArray.length; i++) {
-            initialSongArray[i] = StrikersChargedSongNames.STRIKERS_CHARGED_SONGS[i].getSongDisplayName();
+            initialSongArray[i] = StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongDisplayName();
         }
 
         Arrays.sort(initialSongArray, String.CASE_INSENSITIVE_ORDER);
@@ -183,8 +183,8 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         Song[] songArray;
         String[] songNameArray;
 
-        songNameArray = new String[StrikersChargedSongNames.STRIKERS_CHARGED_SONGS.length];
-        songArray = StrikersChargedSongNames.STRIKERS_CHARGED_SONGS;
+        songNameArray = new String[StrikersChargedConstants.STRIKERS_CHARGED_SONGS.length];
+        songArray = StrikersChargedConstants.STRIKERS_CHARGED_SONGS;
 
         for (int i=0; i<songNameArray.length; i++) {
             songNameArray[i] = songArray[i].getSongDisplayName();
@@ -487,9 +487,9 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
     }
 
     private int getSongIndexFromName(String selectedSong) {
-        for (int i=0; i<StrikersChargedSongNames.STRIKERS_CHARGED_SONGS.length; i++) {
-            if (selectedSong.equals(StrikersChargedSongNames.STRIKERS_CHARGED_SONGS[i].getSongDisplayName())) {
-                return StrikersChargedSongNames.STRIKERS_CHARGED_SONGS[i].getSongIndex();
+        for (int i = 0; i< StrikersChargedConstants.STRIKERS_CHARGED_SONGS.length; i++) {
+            if (selectedSong.equals(StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongDisplayName())) {
+                return StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongIndex();
             }
         }
 

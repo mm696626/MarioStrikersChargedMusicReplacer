@@ -1,12 +1,10 @@
 package io;
 
-import constants.StrikersChargedSongNames;
-import helpers.OffsetGetter;
+import constants.StrikersChargedConstants;
 
 import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.TreeMap;
@@ -18,17 +16,15 @@ public class SongReplacer {
 
 
     public static boolean replaceSong(File nlxwbFile, File leftChannelFile, File rightChannelFile, int songIndex) throws IOException {
-        ArrayList<Integer> songOffsets = OffsetGetter.findIDSPOffsets(Files.readAllBytes(nlxwbFile.toPath()));
-
         createIDSP(leftChannelFile, rightChannelFile);
 
-        int allowedFileSize;
+        long allowedFileSize;
 
-        if (songIndex + 1 >= songOffsets.size()) {
-            allowedFileSize = (int)nlxwbFile.length() - songOffsets.get(songIndex);
+        if (songIndex + 1 >= StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS.length) {
+            allowedFileSize = nlxwbFile.length() - StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex];
         }
         else {
-            allowedFileSize = songOffsets.get(songIndex+1) - songOffsets.get(songIndex);
+            allowedFileSize = StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex+1] - StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex];
         }
 
         File idspFile = new File("temp.idsp");
@@ -42,7 +38,7 @@ public class SongReplacer {
         byte[] idspFileBytes = Files.readAllBytes(idspFile.toPath());
 
         try (RandomAccessFile nlxwbRaf = new RandomAccessFile(nlxwbFile, "rw")) {
-            nlxwbRaf.seek(songOffsets.get(songIndex));
+            nlxwbRaf.seek(StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex]);
             nlxwbRaf.write(idspFileBytes);
         }
 
@@ -85,9 +81,9 @@ public class SongReplacer {
 
         String songName = "";
 
-        for (int i=0; i< StrikersChargedSongNames.STRIKERS_CHARGED_SONGS.length; i++) {
-            if (songIndex == StrikersChargedSongNames.STRIKERS_CHARGED_SONGS[i].getSongIndex()) {
-                songName = StrikersChargedSongNames.STRIKERS_CHARGED_SONGS[i].getSongDisplayName();
+        for (int i = 0; i< StrikersChargedConstants.STRIKERS_CHARGED_SONGS.length; i++) {
+            if (songIndex == StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongIndex()) {
+                songName = StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongDisplayName();
             }
         }
 
@@ -109,9 +105,9 @@ public class SongReplacer {
 
             long audioSize = left.length();
 
-            out.write("IDSP".getBytes("ASCII"));
+            out.write(new byte[]{0x49, 0x44, 0x53, 0x50}); //IDSP magic
 
-            out.write(new byte[]{0x00, 0x00, 0x6B, 0x40});
+            out.write(new byte[]{0x00, 0x00, 0x6B, 0x40}); //interleave size
 
             int dataSize = (int)(audioSize - DSP_HEADER_SIZE);
             out.write(intToBytesBE(dataSize));
