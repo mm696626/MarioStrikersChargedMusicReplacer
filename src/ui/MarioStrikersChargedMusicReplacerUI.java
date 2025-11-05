@@ -13,9 +13,14 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 
 public class MarioStrikersChargedMusicReplacerUI extends JFrame implements ActionListener {
 
@@ -490,6 +495,27 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
         return -1;
     }
+
+    private static File getNLXWBFileName(File pdtFile, String timestamp) {
+        String baseName = pdtFile.getName();
+        int extIndex = baseName.lastIndexOf(".");
+        if (extIndex != -1) {
+            baseName = baseName.substring(0, extIndex);
+        }
+
+        String backupFileName = baseName + "_Backup_" + timestamp + ".pdt";
+        return new File(pdtFile.getParent(), backupFileName);
+    }
+
+    private void backupNLXWB(File pdtFile) {
+        try {
+            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            File backupFile = getNLXWBFileName(pdtFile, timestamp);
+            Files.copy(pdtFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, "Failed to create backup: " + ex.getMessage());
+        }
+    }
     
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -556,6 +582,17 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             if (!nlxwbFile.exists()) {
                 JOptionPane.showMessageDialog(this, "The NLXWB file doesn't exist!");
                 return;
+            }
+
+            int response = JOptionPane.showConfirmDialog(
+                    null,
+                    "Do you want to make a backup of the NLXWB file?",
+                    "Backup NLXWB",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (response == JOptionPane.YES_OPTION) {
+                backupNLXWB(nlxwbFile);
             }
 
             String selectedSong = (String) songSelector.getSelectedItem();
