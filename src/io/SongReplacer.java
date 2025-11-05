@@ -15,7 +15,7 @@ public class SongReplacer {
     private static final int INTERLEAVE_CHUNK_SIZE = 0x6B40;
 
 
-    public static boolean replaceSong(File nlxwbFile, File leftChannelFile, File rightChannelFile, int songIndex) throws IOException {
+    public static boolean replaceSong(File nlxwbFile, File leftChannelFile, File rightChannelFile, int songIndex, boolean deleteDSPAfterModify) throws IOException {
         createIDSP(leftChannelFile, rightChannelFile);
 
         long allowedFileSize;
@@ -43,6 +43,11 @@ public class SongReplacer {
         }
 
         logSongReplacement(songIndex, leftChannelFile, rightChannelFile, nlxwbFile.getAbsolutePath());
+
+        if (deleteDSPAfterModify) {
+            leftChannelFile.delete();
+            rightChannelFile.delete();
+        }
 
         return true;
     }

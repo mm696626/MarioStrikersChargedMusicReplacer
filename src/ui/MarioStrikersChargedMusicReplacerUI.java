@@ -2,6 +2,7 @@ package ui;
 
 import constants.StrikersChargedConstants;
 import helpers.DSPPair;
+import helpers.ReplaceJob;
 import helpers.Song;
 import io.SongDumper;
 import io.SongReplacer;
@@ -37,6 +38,13 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
     private JLabel nlxwbFilePathLabel;
 
     private JComboBox<String> songSelector;
+
+    private DefaultListModel<ReplaceJob> jobQueueModel;
+    private JList<ReplaceJob> jobQueueList;
+    private JButton addToQueueButton, removeQueueButton, clearQueueButton, runBatchButton;
+
+    private JCheckBox autoAddToQueue = null;
+    private JCheckBox deleteDSPAfterModify = null;
 
     public MarioStrikersChargedMusicReplacerUI() {
         setTitle("Mario Strikers Charged Music Replacer");
@@ -112,11 +120,11 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             }
         });
 
-        JPanel dumpModifyPanel = new JPanel(new GridBagLayout());
-        dumpModifyPanel.setBorder(BorderFactory.createTitledBorder("Dump/Modify Songs"));
-        GridBagConstraints dumpModifyGBC = new GridBagConstraints();
-        dumpModifyGBC.insets = new Insets(5, 5, 5, 5);
-        dumpModifyGBC.fill = GridBagConstraints.HORIZONTAL;
+        JPanel dumpReplacePanel = new JPanel(new GridBagLayout());
+        dumpReplacePanel.setBorder(BorderFactory.createTitledBorder("Dump/Replace Songs"));
+        GridBagConstraints dumpReplaceGBC = new GridBagConstraints();
+        dumpReplaceGBC.insets = new Insets(5, 5, 5, 5);
+        dumpReplaceGBC.fill = GridBagConstraints.HORIZONTAL;
 
         pickLeftChannel = new JButton("Select Left DSP Channel");
         pickLeftChannel.addActionListener(this);
@@ -137,34 +145,73 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
         nlxwbFilePathLabel = new JLabel("No NLXWB file selected");
 
-        dumpModifyGBC.gridx = 0; dumpModifyGBC.gridy = 0;
-        dumpModifyPanel.add(pickLeftChannel, dumpModifyGBC);
-        dumpModifyGBC.gridx = 1;
-        dumpModifyPanel.add(leftChannelLabel, dumpModifyGBC);
+        autoAddToQueue = new JCheckBox("Automatically Add DSP Pairs from DSP Folder to Queue");
+        deleteDSPAfterModify = new JCheckBox("Delete Source DSPs after Modify");
 
-        dumpModifyGBC.gridx = 0; dumpModifyGBC.gridy = 1;
-        dumpModifyPanel.add(pickRightChannel, dumpModifyGBC);
-        dumpModifyGBC.gridx = 1;
-        dumpModifyPanel.add(rightChannelLabel, dumpModifyGBC);
+        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 0;
+        dumpReplacePanel.add(pickLeftChannel, dumpReplaceGBC);
+        dumpReplaceGBC.gridx = 1;
+        dumpReplacePanel.add(leftChannelLabel, dumpReplaceGBC);
 
-        dumpModifyGBC.gridx = 0; dumpModifyGBC.gridy = 2;
-        dumpModifyPanel.add(dumpAllSongs, dumpModifyGBC);
+        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 1;
+        dumpReplacePanel.add(pickRightChannel, dumpReplaceGBC);
+        dumpReplaceGBC.gridx = 1;
+        dumpReplacePanel.add(rightChannelLabel, dumpReplaceGBC);
 
-        dumpModifyGBC.gridx = 1; dumpModifyGBC.gridy = 2;
-        dumpModifyPanel.add(replaceSong, dumpModifyGBC);
+        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 2;
+        dumpReplacePanel.add(dumpAllSongs, dumpReplaceGBC);
 
-        dumpModifyGBC.gridx = 0; dumpModifyGBC.gridy = 3;
-        dumpModifyPanel.add(selectNLXWB, dumpModifyGBC);
+        dumpReplaceGBC.gridx = 1; dumpReplaceGBC.gridy = 2;
+        dumpReplacePanel.add(replaceSong, dumpReplaceGBC);
 
-        dumpModifyGBC.gridx = 1;
-        dumpModifyPanel.add(nlxwbFilePathLabel, dumpModifyGBC);
+        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 3;
+        dumpReplacePanel.add(selectNLXWB, dumpReplaceGBC);
+
+        dumpReplaceGBC.gridx = 1;
+        dumpReplacePanel.add(nlxwbFilePathLabel, dumpReplaceGBC);
+
+        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 4;
+        dumpReplacePanel.add(autoAddToQueue, dumpReplaceGBC);
+
+        dumpReplaceGBC.gridx = 1;
+        dumpReplacePanel.add(deleteDSPAfterModify, dumpReplaceGBC);
 
         musicReplacerPanel.add(songPanel);
         musicReplacerPanel.add(Box.createVerticalStrut(10));
-        musicReplacerPanel.add(dumpModifyPanel);
+        musicReplacerPanel.add(dumpReplacePanel);
 
         setLayout(new BorderLayout());
         add(musicReplacerPanel, BorderLayout.CENTER);
+
+        JPanel queuePanel = new JPanel(new BorderLayout());
+        queuePanel.setBorder(BorderFactory.createTitledBorder("Batch Replacement Job Queue"));
+
+        jobQueueModel = new DefaultListModel<>();
+        jobQueueList = new JList<>(jobQueueModel);
+        jobQueueList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        JScrollPane scrollPane = new JScrollPane(jobQueueList);
+
+        JPanel queueButtonPanel = new JPanel(new GridLayout(1, 4, 5, 5));
+        addToQueueButton = new JButton("Add");
+        removeQueueButton = new JButton("Remove");
+        clearQueueButton = new JButton("Clear All");
+        runBatchButton = new JButton("Run Batch");
+
+        addToQueueButton.addActionListener(this);
+        removeQueueButton.addActionListener(this);
+        clearQueueButton.addActionListener(this);
+        runBatchButton.addActionListener(this);
+
+        queueButtonPanel.add(addToQueueButton);
+        queueButtonPanel.add(removeQueueButton);
+        queueButtonPanel.add(clearQueueButton);
+        queueButtonPanel.add(runBatchButton);
+
+        queuePanel.add(scrollPane, BorderLayout.CENTER);
+        queuePanel.add(queueButtonPanel, BorderLayout.SOUTH);
+
+        add(queuePanel, BorderLayout.SOUTH);
     }
 
     private String[] initializeSongArray() {
@@ -210,6 +257,10 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             rightChannelPath = selectedPair.getRight().getAbsolutePath();
             leftChannelLabel.setText(selectedPair.getLeft().getName());
             rightChannelLabel.setText(selectedPair.getRight().getName());
+
+            if (autoAddToQueue.isSelected()) {
+                addToQueue();
+            }
         }
     }
 
@@ -329,6 +380,16 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
         dialog.setVisible(true);
         return selectedPair[0];
+    }
+
+    private void addToQueue() {
+        String songName = (String) songSelector.getSelectedItem();
+        if (songName == null || leftChannelPath.isEmpty() || rightChannelPath.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select song and both DSP channels before adding.");
+            return;
+        }
+
+        jobQueueModel.addElement(new ReplaceJob(songName, leftChannelPath, rightChannelPath));
     }
 
     private void chooseLeftChannelPath() {
@@ -496,22 +557,22 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         return -1;
     }
 
-    private static File getNLXWBFileName(File pdtFile, String timestamp) {
-        String baseName = pdtFile.getName();
+    private static File getNLXWBFileName(File nlxwbFile, String timestamp) {
+        String baseName = nlxwbFile.getName();
         int extIndex = baseName.lastIndexOf(".");
         if (extIndex != -1) {
             baseName = baseName.substring(0, extIndex);
         }
 
-        String backupFileName = baseName + "_Backup_" + timestamp + ".pdt";
-        return new File(pdtFile.getParent(), backupFileName);
+        String backupFileName = baseName + "_Backup_" + timestamp + ".nlxwb";
+        return new File(nlxwbFile.getParent(), backupFileName);
     }
 
-    private void backupNLXWB(File pdtFile) {
+    private void backupNLXWB(File nlxwbFile) {
         try {
             String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            File backupFile = getNLXWBFileName(pdtFile, timestamp);
-            Files.copy(pdtFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            File backupFile = getNLXWBFileName(nlxwbFile, timestamp);
+            Files.copy(nlxwbFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Failed to create backup: " + ex.getMessage());
         }
@@ -608,7 +669,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             }
 
             try {
-                boolean replacedSuccessfully = SongReplacer.replaceSong(nlxwbFile, leftChannelFile, rightChannelFile, songIndex);
+                boolean replacedSuccessfully = SongReplacer.replaceSong(nlxwbFile, leftChannelFile, rightChannelFile, songIndex, deleteDSPAfterModify.isSelected());
 
                 if (replacedSuccessfully) {
                     JOptionPane.showMessageDialog(null, selectedSong + " replaced successfully!");
@@ -619,6 +680,86 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             catch (Exception ex) {
                 return;
             }
+        }
+
+        if (e.getSource() == addToQueueButton) {
+            addToQueue();
+        }
+
+        if (e.getSource() == removeQueueButton) {
+            int selectedIndex = jobQueueList.getSelectedIndex();
+            if (selectedIndex != -1) {
+                jobQueueModel.remove(selectedIndex);
+            }
+        }
+
+        if (e.getSource() == clearQueueButton) {
+            jobQueueModel.clear();
+        }
+
+        if (e.getSource() == runBatchButton) {
+            if (jobQueueModel.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Queue is empty!");
+                return;
+            }
+
+            if (nlxwbPath.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No NLXWB file was chosen!");
+                return;
+            }
+
+            File nlxwbFile = new File(nlxwbPath);
+            if (!nlxwbFile.exists()) {
+                JOptionPane.showMessageDialog(this, "The selected NLXWB file doesn't exist!");
+                return;
+            }
+
+            int response = JOptionPane.showConfirmDialog(
+                    this,
+                    "This will modify the NLXWB for all jobs in the queue.\nDo you want to back up the NLXWB file first?",
+                    "Backup?",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (response == JOptionPane.YES_OPTION) {
+                backupNLXWB(nlxwbFile);
+            }
+
+            for (int i = 0; i < jobQueueModel.size(); i++) {
+                ReplaceJob replaceJob = jobQueueModel.getElementAt(i);
+
+                int songIndex = getSongIndexFromName(replaceJob.getSongName());
+
+                if (songIndex == -1) {
+                    continue;
+                }
+
+                File leftDSP = new File(replaceJob.getLeftDSP());
+                File rightDSP = new File(replaceJob.getRightDSP());
+
+                if (!leftDSP.exists() || !rightDSP.exists()) {
+                    JOptionPane.showMessageDialog(this, "DSP files for " + replaceJob.getSongName() + " not found. Skipping.");
+                    continue;
+                }
+
+                try {
+                    boolean replacedSuccessfully = SongReplacer.replaceSong(nlxwbFile, leftDSP, rightDSP, songIndex, deleteDSPAfterModify.isSelected());
+
+                    if (!replacedSuccessfully) {
+                        JOptionPane.showMessageDialog(this, "The job for " + replaceJob.getSongName() + " wasn't successful");
+                    }
+                    else {
+                        File idspFile = new File("temp.idsp");
+                        idspFile.delete();
+                    }
+                }
+                catch (Exception ex) {
+                    return;
+                }
+            }
+
+            JOptionPane.showMessageDialog(this, "Batch process completed.");
+            jobQueueModel.clear();
         }
     }
 }
