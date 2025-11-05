@@ -753,10 +753,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
                 try {
                     boolean replacedSuccessfully = SongReplacer.replaceSong(nlxwbFile, leftDSP, rightDSP, songIndex, deleteDSPAfterModify.isSelected());
 
-                    if (!replacedSuccessfully) {
-                        JOptionPane.showMessageDialog(this, "The job for " + replaceJob.getSongName() + " wasn't successful");
-                    }
-                    else {
+                    if (replacedSuccessfully) {
                         File idspFile = new File("temp.idsp");
                         idspFile.delete();
                     }

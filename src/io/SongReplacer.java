@@ -30,7 +30,10 @@ public class SongReplacer {
         File idspFile = new File("temp.idsp");
 
         if (idspFile.length() > allowedFileSize) {
-            JOptionPane.showMessageDialog(null, "Files are too large!");
+
+            String songName = getSongNameFromIndex(songIndex);
+
+            JOptionPane.showMessageDialog(null, "Your replacement for " + songName + " is too large!");
             idspFile.delete();
             return false;
         }
@@ -50,6 +53,18 @@ public class SongReplacer {
         }
 
         return true;
+    }
+
+    private static String getSongNameFromIndex(int songIndex) {
+        String songName = "";
+
+        for (int i = 0; i< StrikersChargedConstants.STRIKERS_CHARGED_SONGS.length; i++) {
+            if (songIndex == StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongIndex()) {
+                songName = StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongDisplayName();
+            }
+        }
+
+        return songName;
     }
 
     private static void logSongReplacement(int songIndex, File leftChannel, File rightChannel, String nlxwbFilePath) {
@@ -84,13 +99,7 @@ public class SongReplacer {
             }
         }
 
-        String songName = "";
-
-        for (int i = 0; i< StrikersChargedConstants.STRIKERS_CHARGED_SONGS.length; i++) {
-            if (songIndex == StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongIndex()) {
-                songName = StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongDisplayName();
-            }
-        }
+        String songName = getSongNameFromIndex(songIndex);
 
         songMap.put(songName, leftChannel.getName() + "|" + rightChannel.getName());
 
