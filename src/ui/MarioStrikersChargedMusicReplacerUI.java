@@ -6,6 +6,7 @@ import helpers.ReplaceJob;
 import helpers.Song;
 import io.SongDumper;
 import io.SongReplacer;
+import io.ValidOffsetsChecker;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -553,8 +554,16 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         }
 
         File selectedNLXWB = nlxwbFileChooser.getSelectedFile();
+        boolean validOffsets;
 
-        if (selectedNLXWB.getName().equals("STREAM_GEN_Music.nlxwb")) {
+        try {
+            validOffsets = ValidOffsetsChecker.checkValidOffsets(selectedNLXWB);
+        }
+        catch (Exception e) {
+            return;
+        }
+
+        if (selectedNLXWB.getName().equals("STREAM_GEN_Music.nlxwb") && validOffsets) {
             nlxwbPath = selectedNLXWB.getAbsolutePath();
             nlxwbFilePathLabel.setText("Selected NLXWB: " + nlxwbPath);
         }
