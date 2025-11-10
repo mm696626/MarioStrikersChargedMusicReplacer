@@ -711,7 +711,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
                 return;
             }
 
-            if (nlxwbPath.isEmpty()) {
+            if (nlxwbPath == null || nlxwbPath.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "No NLXWB file was chosen!");
                 return;
             }
