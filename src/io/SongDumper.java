@@ -9,12 +9,25 @@ import java.nio.file.Path;
 
 public class SongDumper {
 
-    public static void dumpAllSongs(File nlxwbFile, File outputFolder) throws IOException {
-        splitFileByIDSP(nlxwbFile, outputFolder);
+    public static void dumpSong(File nlxwbFile, File outputFolder, int selectedSongIndex) throws IOException {
+        byte[] fileData = Files.readAllBytes(nlxwbFile.toPath());
+        long[] positions = StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS;
+
+        Path outputDir = outputFolder.toPath();
+        Files.createDirectories(outputDir);
+
+        long start = positions[selectedSongIndex];
+        long end = (selectedSongIndex + 1 < positions.length) ? positions[selectedSongIndex+1] : fileData.length;
+
+        byte[] idspChunk = new byte[(int)(end - start)];
+        System.arraycopy(fileData, (int)start, idspChunk, 0, idspChunk.length);
+
+        Path outputPath = outputDir.resolve(getSongNameFromIndex(selectedSongIndex) + ".idsp");
+        Files.write(outputPath, idspChunk);
     }
 
-    private static void splitFileByIDSP(File file, File outputFolder) throws IOException {
-        byte[] fileData = Files.readAllBytes(file.toPath());
+    public static void dumpAllSongs(File nlxwbFile, File outputFolder) throws IOException {
+        byte[] fileData = Files.readAllBytes(nlxwbFile.toPath());
         long[] positions = StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS;
 
         Path outputDir = outputFolder.toPath();
@@ -27,8 +40,18 @@ public class SongDumper {
             byte[] idspChunk = new byte[(int)(end - start)];
             System.arraycopy(fileData, (int)start, idspChunk, 0, idspChunk.length);
 
-            Path outputPath = outputDir.resolve(String.format("chunk_%03d.idsp", i));
+            Path outputPath = outputDir.resolve(getSongNameFromIndex(i) + ".idsp");
             Files.write(outputPath, idspChunk);
         }
+    }
+
+    private static String getSongNameFromIndex(int index) {
+        for (int i=0; i<StrikersChargedConstants.STRIKERS_CHARGED_SONGS.length; i++) {
+            if (index == StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongIndex()) {
+                return StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongDisplayName();
+            }
+        }
+
+        return "chunk_" + index;
     }
 }

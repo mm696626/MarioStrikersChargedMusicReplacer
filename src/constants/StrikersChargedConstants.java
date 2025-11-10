@@ -6,7 +6,7 @@ public class StrikersChargedConstants {
 
     public static final Song[] STRIKERS_CHARGED_SONGS = {
             new Song(0, "Sudden Death"),
-            new Song(1, "Loading Screen"),
+            new Song(1, "Title Screen"),
             new Song(2, "Main Menu"),
             new Song(3, "Pause Menu"),
             new Song(4, "Galactic Stadium"),
@@ -36,7 +36,7 @@ public class StrikersChargedConstants {
             new Song(28, "Super Mario"),
             new Song(29, "Super Luigi"),
             new Song(30, "Results"),
-            new Song(31, "Hall of Fame"),
+            new Song(31, "Record Breakers (Loop)"),
             new Song(32, "Credits")
     };
 

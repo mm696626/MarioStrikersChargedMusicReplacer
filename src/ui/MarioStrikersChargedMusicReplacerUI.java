@@ -25,7 +25,7 @@ import java.util.Date;
 
 public class MarioStrikersChargedMusicReplacerUI extends JFrame implements ActionListener {
 
-    private JButton pickLeftChannel, pickRightChannel, dumpAllSongs, replaceSong, selectNLXWB;
+    private JButton pickLeftChannel, pickRightChannel, dumpSong, dumpAllSongs, replaceSong, selectNLXWB;
     private String leftChannelPath = "";
     private String rightChannelPath = "";
 
@@ -134,6 +134,9 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         pickRightChannel.addActionListener(this);
         rightChannelLabel = new JLabel("No file selected");
 
+        dumpSong = new JButton("Dump Selected Song");
+        dumpSong.addActionListener(this);
+
         dumpAllSongs = new JButton("Dump All Songs");
         dumpAllSongs.addActionListener(this);
 
@@ -159,18 +162,23 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         dumpReplacePanel.add(rightChannelLabel, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 2;
-        dumpReplacePanel.add(dumpAllSongs, dumpReplaceGBC);
+        dumpReplacePanel.add(dumpSong, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 1; dumpReplaceGBC.gridy = 2;
-        dumpReplacePanel.add(replaceSong, dumpReplaceGBC);
+        dumpReplacePanel.add(dumpAllSongs, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 3;
-        dumpReplacePanel.add(selectNLXWB, dumpReplaceGBC);
-
-        dumpReplaceGBC.gridx = 1;
-        dumpReplacePanel.add(nlxwbFilePathLabel, dumpReplaceGBC);
+        dumpReplaceGBC.gridwidth = 2;
+        dumpReplacePanel.add(replaceSong, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 4;
+        dumpReplacePanel.add(selectNLXWB, dumpReplaceGBC);
+
+        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 5;
+        dumpReplaceGBC.gridwidth = 1;
+        dumpReplacePanel.add(nlxwbFilePathLabel, dumpReplaceGBC);
+
+        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 6;
         dumpReplacePanel.add(autoAddToQueue, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 1;
@@ -594,6 +602,42 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
         if (e.getSource() == pickRightChannel) {
             chooseRightChannelPath();
+        }
+
+        if (e.getSource() == dumpSong) {
+            if (nlxwbPath == null || nlxwbPath.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Choose a NLXWB before continuing");
+                return;
+            }
+
+            JFileChooser dumpOutputFolderChooser = new JFileChooser();
+            dumpOutputFolderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            dumpOutputFolderChooser.setDialogTitle("Select Dump Output Folder");
+            dumpOutputFolderChooser.setAcceptAllFileFilterUsed(false);
+            int result = dumpOutputFolderChooser.showOpenDialog(this);
+
+            if (result != JFileChooser.APPROVE_OPTION) {
+                return;
+            }
+
+            File dumpOutputFolder = dumpOutputFolderChooser.getSelectedFile();
+
+            String selectedSong = (String) songSelector.getSelectedItem();
+            if (selectedSong == null || selectedSong.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please select a song name before generating.");
+                return;
+            }
+
+            int songIndex = getSongIndexFromName(selectedSong);
+
+            try {
+                SongDumper.dumpSong(new File(nlxwbPath), dumpOutputFolder, songIndex);
+            }
+            catch (Exception ex) {
+                return;
+            }
+
+            JOptionPane.showMessageDialog(this, "Songs have been dumped!");
         }
 
         if (e.getSource() == dumpAllSongs) {
