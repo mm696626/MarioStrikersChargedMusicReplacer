@@ -817,6 +817,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
             try {
                 SongReplacer.createIDSPFile(leftChannelFile, rightChannelFile, idspFile, writeFooter);
+                JOptionPane.showMessageDialog(this, "IDSP file has been created!");
             }
             catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "The IDSP file couldn't be created!");
