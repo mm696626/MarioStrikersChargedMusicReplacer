@@ -16,7 +16,9 @@ public class SongReplacer {
 
 
     public static boolean replaceSong(File nlxwbFile, File leftChannelFile, File rightChannelFile, int songIndex, boolean deleteDSPAfterModify) throws IOException {
-        createIDSP(leftChannelFile, rightChannelFile);
+        File idspFile = new File("temp.idsp");
+
+        createIDSPFile(leftChannelFile, rightChannelFile, idspFile, true);
 
         long allowedFileSize;
 
@@ -26,8 +28,6 @@ public class SongReplacer {
         else {
             allowedFileSize = StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex+1] - StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex];
         }
-
-        File idspFile = new File("temp.idsp");
 
         if (idspFile.length() > allowedFileSize) {
 
@@ -112,10 +112,10 @@ public class SongReplacer {
         }
     }
 
-    private static void createIDSP(File leftFile, File rightFile) throws IOException {
+    public static void createIDSPFile(File leftFile, File rightFile, File idspFile, boolean writeFooter) throws IOException {
         try (RandomAccessFile left = new RandomAccessFile(leftFile, "r");
              RandomAccessFile right = new RandomAccessFile(rightFile, "r");
-             FileOutputStream out = new FileOutputStream("temp.idsp")) {
+             FileOutputStream out = new FileOutputStream(idspFile)) {
 
             long audioSize = left.length();
 
@@ -156,9 +156,11 @@ public class SongReplacer {
                 if (rightRead > 0) out.write(rightChunk, 0, rightRead);
             }
 
-            byte[] footer = new byte[0x14];
-            for (int i = 0; i < footer.length; i++) footer[i] = 0x30;
-            out.write(footer);
+            if (writeFooter) {
+                byte[] footer = new byte[0x14];
+                for (int i = 0; i < footer.length; i++) footer[i] = 0x30;
+                out.write(footer);
+            }
         }
     }
 

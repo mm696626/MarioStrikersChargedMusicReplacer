@@ -26,7 +26,7 @@ import java.util.Date;
 
 public class MarioStrikersChargedMusicReplacerUI extends JFrame implements ActionListener {
 
-    private JButton pickLeftChannel, pickRightChannel, dumpSong, dumpAllSongs, replaceSong, selectNLXWB;
+    private JButton pickLeftChannel, pickRightChannel, dumpSong, dumpAllSongs, replaceSong, createIDSP, selectNLXWB;
     private String leftChannelPath = "";
     private String rightChannelPath = "";
 
@@ -144,6 +144,9 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         replaceSong = new JButton("Replace Song");
         replaceSong.addActionListener(this);
 
+        createIDSP = new JButton("Create IDSP");
+        createIDSP.addActionListener(this);
+
         selectNLXWB = new JButton("Select NLXWB");
         selectNLXWB.addActionListener(this);
 
@@ -176,10 +179,13 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         dumpReplacePanel.add(selectNLXWB, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 5;
+        dumpReplacePanel.add(createIDSP, dumpReplaceGBC);
+
+        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 6;
         dumpReplaceGBC.gridwidth = 1;
         dumpReplacePanel.add(nlxwbFilePathLabel, dumpReplaceGBC);
 
-        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 6;
+        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 7;
         dumpReplacePanel.add(autoAddToQueue, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 1;
@@ -739,6 +745,83 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
                 }
             }
             catch (Exception ex) {
+                return;
+            }
+        }
+
+        if (e.getSource() == createIDSP) {
+            if (leftChannelPath.isEmpty() || rightChannelPath.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Either the left or right channel wasn't chosen!");
+                return;
+            }
+
+            File leftChannelFile = new File(leftChannelPath);
+            File rightChannelFile = new File(rightChannelPath);
+
+            if (!leftChannelFile.exists() || !rightChannelFile.exists()) {
+                JOptionPane.showMessageDialog(this, "Either the left or right channel doesn't exist!");
+                return;
+            }
+
+            File idspFile;
+
+            JFileChooser idspFileSaver = new JFileChooser();
+            idspFileSaver.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            idspFileSaver.setDialogTitle("Select IDSP Save Location");
+
+            FileNameExtensionFilter idspFilter = new FileNameExtensionFilter("IDSP Files", "idsp");
+            idspFileSaver.setFileFilter(idspFilter);
+            idspFileSaver.setAcceptAllFileFilterUsed(false);
+
+            int saveLocationSelected = idspFileSaver.showSaveDialog(this);
+            if (saveLocationSelected == JFileChooser.APPROVE_OPTION) {
+                idspFile = idspFileSaver.getSelectedFile();
+
+                String name = idspFile.getName();
+                String baseName;
+                String extension = "";
+
+                int dotIndex = name.lastIndexOf('.');
+                if (dotIndex > 0 && dotIndex < name.length() - 1) {
+                    baseName = name.substring(0, dotIndex);
+                    extension = name.substring(dotIndex + 1);
+                } else {
+                    baseName = name;
+                }
+
+                baseName = baseName.replaceAll("[^a-zA-Z0-9]", "_");
+
+                if (extension.isEmpty() || !extension.equalsIgnoreCase("idsp")) {
+                    extension = "idsp";
+                }
+
+                String sanitizedFileName = baseName + "." + extension;
+                idspFile = new File(idspFile.getParentFile(), sanitizedFileName);
+
+                System.out.println("Saving to: " + idspFile.getAbsolutePath());
+            }
+            else {
+                return;
+            }
+
+            boolean writeFooter = false;
+
+            int response = JOptionPane.showConfirmDialog(
+                    this,
+                    "Do you want to write the footer? This is only required for Strikers Charged",
+                    "Write Footer?",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (response == JOptionPane.YES_OPTION) {
+                writeFooter = true;
+            }
+
+            try {
+                SongReplacer.createIDSPFile(leftChannelFile, rightChannelFile, idspFile, writeFooter);
+            }
+            catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "The IDSP file couldn't be created!");
                 return;
             }
         }
