@@ -3,7 +3,6 @@
 ### Mario Strikers Charged Music Replacer
 * A tool allows you to replace music in the STREAM_GEN_Music.nlxwb file of Mario Strikers Charged
 * Note that this won't let you replace character themes and such since unfortunately they have character voices baked into them
-* This tool also lets you generate IDSP files for use in the prequel, Super Mario Strikers (that game has basically no music, but it's neat anyway)
 
 ### Important Note
 * Looping points aren't supported since the game will just ignore them
@@ -26,7 +25,7 @@
 * The Rest of the IDSP
     * Left Channel Data Chunks that are the size defined in the header (last chunk is padded)
     * Right Channel Data Chunks that are the size defined in the header (last chunk is padded)
-    * 0x14 bytes of 0x30 (this is the footer) (Super Mario Strikers doesn't have this)
+    * 0x14 bytes of 0x30 (this is the footer)
 
 ### Special Thanks/Credits
 * This documentation on the IDSP header and DSP format helped a lot too
