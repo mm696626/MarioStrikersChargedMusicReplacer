@@ -26,19 +26,17 @@ import java.util.Date;
 
 public class MarioStrikersChargedMusicReplacerUI extends JFrame implements ActionListener {
 
-    private JButton pickLeftChannel, pickRightChannel, dumpSong, dumpAllSongs, replaceSong, selectNLXWB, selectRESBUN;
+    private JButton pickLeftChannel, pickRightChannel, dumpSong, dumpAllSongs, replaceSong, selectNLXWB;
     private String leftChannelPath = "";
     private String rightChannelPath = "";
 
     private File savedDSPFolder;
 
     private String nlxwbPath;
-    private String resbunPath;
 
     private JLabel leftChannelLabel;
     private JLabel rightChannelLabel;
     private JLabel nlxwbFilePathLabel;
-    private JLabel resbunFilePathLabel;
 
     private JComboBox<String> songSelector;
 
@@ -149,11 +147,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         selectNLXWB = new JButton("Select NLXWB");
         selectNLXWB.addActionListener(this);
 
-        selectRESBUN = new JButton("Select RESBUN");
-        selectRESBUN.addActionListener(this);
-
         nlxwbFilePathLabel = new JLabel("No NLXWB file selected");
-        resbunFilePathLabel = new JLabel("No RESBUN file selected");
 
         autoAddToQueue = new JCheckBox("Automatically Add DSP Pairs from DSP Folder to Queue");
         deleteDSPAfterModify = new JCheckBox("Delete Source DSPs after Modify");
@@ -182,16 +176,10 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         dumpReplacePanel.add(selectNLXWB, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 5;
-        dumpReplacePanel.add(selectRESBUN, dumpReplaceGBC);
-
-        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 6;
         dumpReplaceGBC.gridwidth = 1;
         dumpReplacePanel.add(nlxwbFilePathLabel, dumpReplaceGBC);
 
-        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 7;
-        dumpReplacePanel.add(resbunFilePathLabel, dumpReplaceGBC);
-
-        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 8;
+        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 6;
         dumpReplacePanel.add(autoAddToQueue, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 1;
@@ -584,31 +572,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         }
     }
 
-    private void initRESBUNPath() {
-        JFileChooser resbunFileChooser = new JFileChooser();
-        resbunFileChooser.setDialogTitle("Select RESBUN file");
-        resbunFileChooser.setAcceptAllFileFilterUsed(false);
-
-        FileNameExtensionFilter resbunFilter = new FileNameExtensionFilter("RESBUN Files", "resbun");
-        resbunFileChooser.setFileFilter(resbunFilter);
-
-        int userSelection = resbunFileChooser.showOpenDialog(null);
-
-        if (userSelection != JFileChooser.APPROVE_OPTION) {
-            return;
-        }
-
-        File selectedRESBUN = resbunFileChooser.getSelectedFile();
-
-        if (selectedRESBUN.getName().equals("STREAM_GEN_Music.resbun")) {
-            resbunPath = selectedRESBUN.getAbsolutePath();
-            resbunFilePathLabel.setText("Selected RESBUN: " + resbunPath);
-        }
-        else {
-            JOptionPane.showMessageDialog(this, "This isn't the correct RESBUN. The correct one is STREAM_GEN_Music.resbun");
-        }
-    }
-
     private int getSongIndexFromName(String selectedSong) {
         for (int i = 0; i< StrikersChargedConstants.STRIKERS_CHARGED_SONGS.length; i++) {
             if (selectedSong.equals(StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongDisplayName())) {
@@ -635,16 +598,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
             File backupFile = getNLXWBFileName(nlxwbFile, timestamp);
             Files.copy(nlxwbFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(null, "Failed to create backup: " + ex.getMessage());
-        }
-    }
-
-    private void backupRESBUN(File resbunFile) {
-        try {
-            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            File backupFile = getNLXWBFileName(resbunFile, timestamp);
-            Files.copy(resbunFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Failed to create backup: " + ex.getMessage());
         }
@@ -728,10 +681,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             initNLXWBPath();
         }
 
-        if (e.getSource() == selectRESBUN) {
-            initRESBUNPath();
-        }
-
         if (e.getSource() == replaceSong) {
             if (leftChannelPath.isEmpty() || rightChannelPath.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Either the left or right channel wasn't chosen!");
@@ -743,15 +692,9 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
                 return;
             }
 
-            if (resbunPath == null || resbunPath.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "The RESBUN wasn't chosen!");
-                return;
-            }
-
             File leftChannelFile = new File(leftChannelPath);
             File rightChannelFile = new File(rightChannelPath);
             File nlxwbFile = new File(nlxwbPath);
-            File resbunFile = new File(resbunPath);
 
             if (!leftChannelFile.exists() || !rightChannelFile.exists()) {
                 JOptionPane.showMessageDialog(this, "Either the left or right channel doesn't exist!");
@@ -760,11 +703,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
             if (!nlxwbFile.exists()) {
                 JOptionPane.showMessageDialog(this, "The NLXWB file doesn't exist!");
-                return;
-            }
-
-            if (!resbunFile.exists()) {
-                JOptionPane.showMessageDialog(this, "The RESBUN file doesn't exist!");
                 return;
             }
 
@@ -777,17 +715,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
             if (response == JOptionPane.YES_OPTION) {
                 backupNLXWB(nlxwbFile);
-            }
-
-            response = JOptionPane.showConfirmDialog(
-                    null,
-                    "Do you want to make a backup of the RESBUN file?",
-                    "Backup RESBUN",
-                    JOptionPane.YES_NO_OPTION
-            );
-
-            if (response == JOptionPane.YES_OPTION) {
-                backupRESBUN(resbunFile);
             }
 
             String selectedSong = (String) songSelector.getSelectedItem();
@@ -842,21 +769,9 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
                 return;
             }
 
-            if (resbunPath == null || resbunPath.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "The RESBUN wasn't chosen!");
-                return;
-            }
-
             File nlxwbFile = new File(nlxwbPath);
-            File resbunFile = new File(resbunPath);
-
             if (!nlxwbFile.exists()) {
                 JOptionPane.showMessageDialog(this, "The selected NLXWB file doesn't exist!");
-                return;
-            }
-
-            if (!resbunFile.exists()) {
-                JOptionPane.showMessageDialog(this, "The selected RESBUN file doesn't exist!");
                 return;
             }
 
@@ -869,17 +784,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
             if (response == JOptionPane.YES_OPTION) {
                 backupNLXWB(nlxwbFile);
-            }
-
-            response = JOptionPane.showConfirmDialog(
-                    this,
-                    "This will modify the RESBUN for all jobs in the queue that exceed the original file size.\nDo you want to back up the RESBUN file first?",
-                    "Backup?",
-                    JOptionPane.YES_NO_OPTION
-            );
-
-            if (response == JOptionPane.YES_OPTION) {
-                backupRESBUN(nlxwbFile);
             }
 
             for (int i = 0; i < jobQueueModel.size(); i++) {
