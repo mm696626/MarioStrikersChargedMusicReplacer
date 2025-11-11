@@ -797,8 +797,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
                 String sanitizedFileName = baseName + "." + extension;
                 idspFile = new File(idspFile.getParentFile(), sanitizedFileName);
-
-                System.out.println("Saving to: " + idspFile.getAbsolutePath());
             }
             else {
                 return;
