@@ -26,7 +26,7 @@ import java.util.Date;
 
 public class MarioStrikersChargedMusicReplacerUI extends JFrame implements ActionListener {
 
-    private JButton pickLeftChannel, pickRightChannel, dumpSong, dumpAllSongs, replaceSong, selectNLXWB;
+    private JButton pickLeftChannel, pickRightChannel, dumpAllSongsFromNLXWB, createIDSP, replaceSong, selectNLXWB;
     private String leftChannelPath = "";
     private String rightChannelPath = "";
 
@@ -135,11 +135,11 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         pickRightChannel.addActionListener(this);
         rightChannelLabel = new JLabel("No file selected");
 
-        dumpSong = new JButton("Dump Selected Song");
-        dumpSong.addActionListener(this);
+        dumpAllSongsFromNLXWB = new JButton("Dump All Songs from NLXWB");
+        dumpAllSongsFromNLXWB.addActionListener(this);
 
-        dumpAllSongs = new JButton("Dump All Songs");
-        dumpAllSongs.addActionListener(this);
+        createIDSP = new JButton("Create IDSP");
+        createIDSP.addActionListener(this);
 
         replaceSong = new JButton("Replace Song");
         replaceSong.addActionListener(this);
@@ -163,10 +163,10 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         dumpReplacePanel.add(rightChannelLabel, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 2;
-        dumpReplacePanel.add(dumpSong, dumpReplaceGBC);
+        dumpReplacePanel.add(dumpAllSongsFromNLXWB, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 1; dumpReplaceGBC.gridy = 2;
-        dumpReplacePanel.add(dumpAllSongs, dumpReplaceGBC);
+        dumpReplacePanel.add(createIDSP, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 3;
         dumpReplaceGBC.gridwidth = 2;
@@ -613,11 +613,21 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             chooseRightChannelPath();
         }
 
-        if (e.getSource() == dumpSong) {
-            if (nlxwbPath == null || nlxwbPath.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Choose a NLXWB before continuing");
+        if (e.getSource() == dumpAllSongsFromNLXWB) {
+            JFileChooser nlxwbFileChooser = new JFileChooser();
+            nlxwbFileChooser.setDialogTitle("Select NLXWB file");
+            nlxwbFileChooser.setAcceptAllFileFilterUsed(false);
+
+            FileNameExtensionFilter nlxwbFilter = new FileNameExtensionFilter("NLXWB Files", "nlxwb");
+            nlxwbFileChooser.setFileFilter(nlxwbFilter);
+
+            int userSelection = nlxwbFileChooser.showOpenDialog(null);
+
+            if (userSelection != JFileChooser.APPROVE_OPTION) {
                 return;
             }
+
+            File selectedNLXWB = nlxwbFileChooser.getSelectedFile();
 
             JFileChooser dumpOutputFolderChooser = new JFileChooser();
             dumpOutputFolderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -631,16 +641,8 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
             File dumpOutputFolder = dumpOutputFolderChooser.getSelectedFile();
 
-            String selectedSong = (String) songSelector.getSelectedItem();
-            if (selectedSong == null || selectedSong.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please select a song name before generating.");
-                return;
-            }
-
-            int songIndex = getSongIndexFromName(selectedSong);
-
             try {
-                SongDumper.dumpSong(new File(nlxwbPath), dumpOutputFolder, songIndex);
+                SongDumper.dumpAllSongs(selectedNLXWB, dumpOutputFolder);
             }
             catch (Exception ex) {
                 return;
@@ -649,32 +651,69 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             JOptionPane.showMessageDialog(this, "Songs have been dumped!");
         }
 
-        if (e.getSource() == dumpAllSongs) {
-            if (nlxwbPath == null || nlxwbPath.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Choose a NLXWB before continuing");
+        if (e.getSource() == createIDSP) {
+            if (leftChannelPath.isEmpty() || rightChannelPath.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Either the left or right channel wasn't chosen!");
                 return;
             }
 
-            JFileChooser dumpOutputFolderChooser = new JFileChooser();
-            dumpOutputFolderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-            dumpOutputFolderChooser.setDialogTitle("Select Dump Output Folder");
-            dumpOutputFolderChooser.setAcceptAllFileFilterUsed(false);
-            int result = dumpOutputFolderChooser.showOpenDialog(this);
+            File leftChannelFile = new File(leftChannelPath);
+            File rightChannelFile = new File(rightChannelPath);
 
-            if (result != JFileChooser.APPROVE_OPTION) {
+            if (!leftChannelFile.exists() || !rightChannelFile.exists()) {
+                JOptionPane.showMessageDialog(this, "Either the left or right channel doesn't exist!");
                 return;
             }
 
-            File dumpOutputFolder = dumpOutputFolderChooser.getSelectedFile();
+            File idspFile;
+
+            JFileChooser idspFileSaver = new JFileChooser();
+            idspFileSaver.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            idspFileSaver.setDialogTitle("Select IDSP Save Location");
+
+            FileNameExtensionFilter idspFilter = new FileNameExtensionFilter("IDSP Files", "idsp");
+            idspFileSaver.setFileFilter(idspFilter);
+            idspFileSaver.setAcceptAllFileFilterUsed(false);
+
+            int saveLocationSelected = idspFileSaver.showSaveDialog(this);
+            if (saveLocationSelected == JFileChooser.APPROVE_OPTION) {
+                idspFile = idspFileSaver.getSelectedFile();
+
+                String name = idspFile.getName();
+                String baseName;
+                String extension = "";
+
+                int dotIndex = name.lastIndexOf('.');
+                if (dotIndex > 0 && dotIndex < name.length() - 1) {
+                    baseName = name.substring(0, dotIndex);
+                    extension = name.substring(dotIndex + 1);
+                } else {
+                    baseName = name;
+                }
+
+                baseName = baseName.replaceAll("[^a-zA-Z0-9]", "_");
+
+                if (extension.isEmpty() || !extension.equalsIgnoreCase("idsp")) {
+                    extension = "idsp";
+                }
+
+                String sanitizedFileName = baseName + "." + extension;
+                idspFile = new File(idspFile.getParentFile(), sanitizedFileName);
+
+                System.out.println("Saving to: " + idspFile.getAbsolutePath());
+            }
+            else {
+                return;
+            }
 
             try {
-                SongDumper.dumpAllSongs(new File(nlxwbPath), dumpOutputFolder);
+                SongReplacer.createIDSPFile(leftChannelFile, rightChannelFile, idspFile);
+                JOptionPane.showMessageDialog(this, "IDSP has been created!");
             }
             catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "The IDSP file couldn't be created!");
                 return;
             }
-
-            JOptionPane.showMessageDialog(this, "Songs have been dumped!");
         }
 
         if (e.getSource() == selectNLXWB) {
