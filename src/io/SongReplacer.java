@@ -75,17 +75,27 @@ public class SongReplacer {
         }
 
         else {
+            long[] offsetTable;
+            long songOffset;
+
             if (isStream) {
-                try (RandomAccessFile nlxwbRaf = new RandomAccessFile(nlxwbFile, "rw")) {
-                    nlxwbRaf.seek(StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex]);
-                    nlxwbRaf.write(idspFileBytes);
-                }
+                offsetTable = StrikersChargedConstants.STRIKERS_CHARGED_RESBUN_OFFSETS;
+                songOffset = StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex];
             }
             else {
-                try (RandomAccessFile nlxwbRaf = new RandomAccessFile(nlxwbFile, "rw")) {
-                    nlxwbRaf.seek(StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONG_OFFSETS[songIndex]);
-                    nlxwbRaf.write(idspFileBytes);
-                }
+                offsetTable = StrikersChargedConstants.STRIKERS_CHARGED_MENU_RESBUN_OFFSETS;
+                songOffset = StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONG_OFFSETS[songIndex];
+            }
+
+            try (RandomAccessFile nlxwbRaf = new RandomAccessFile(nlxwbFile, "rw")) {
+                nlxwbRaf.seek(songOffset);
+                nlxwbRaf.write(idspFileBytes);
+            }
+
+            try (RandomAccessFile resbunRaf = new RandomAccessFile(resbunFile, "rw")) {
+                resbunRaf.seek(offsetTable[songIndex]);
+                resbunRaf.writeInt((int)songOffset);
+                resbunRaf.writeInt((int)idspFile.length());
             }
         }
 
