@@ -19,10 +19,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
+import java.util.*;
+import java.util.List;
 
 public class MarioStrikersChargedMusicReplacerUI extends JFrame implements ActionListener {
 
@@ -43,6 +41,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
     private DefaultListModel<ReplaceJob> jobQueueModel;
     private JList<ReplaceJob> jobQueueList;
     private JButton addToQueueButton, removeQueueButton, clearQueueButton, runBatchButton;
+    private JButton modifyWithRandomSongs;
 
     private JCheckBox autoAddToQueue = null;
     private JCheckBox deleteDSPAfterModify = null;
@@ -137,6 +136,9 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         dumpAllSongsFromNLXWB = new JButton("Dump All Songs from NLXWB");
         dumpAllSongsFromNLXWB.addActionListener(this);
 
+        modifyWithRandomSongs = new JButton("Modify Songs with Random Songs");
+        modifyWithRandomSongs.addActionListener(this);
+
         replaceSong = new JButton("Replace Song");
         replaceSong.addActionListener(this);
 
@@ -166,13 +168,16 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         dumpReplacePanel.add(replaceSong, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 4;
-        dumpReplacePanel.add(selectNLXWB, dumpReplaceGBC);
+        dumpReplacePanel.add(modifyWithRandomSongs, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 5;
+        dumpReplacePanel.add(selectNLXWB, dumpReplaceGBC);
+
+        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 6;
         dumpReplaceGBC.gridwidth = 1;
         dumpReplacePanel.add(nlxwbFilePathLabel, dumpReplaceGBC);
 
-        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 6;
+        dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 7;
         dumpReplacePanel.add(autoAddToQueue, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 1;
@@ -765,6 +770,213 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             catch (Exception ex) {
                 return;
             }
+        }
+
+        if (e.getSource() == modifyWithRandomSongs) {
+
+            if (nlxwbPath == null || nlxwbPath.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No NLXWB file was chosen!");
+                return;
+            }
+
+            File nlxwbFile = new File(nlxwbPath);
+            if (!nlxwbFile.exists()) {
+                JOptionPane.showMessageDialog(this, "The selected NLXWB file doesn't exist!");
+                return;
+            }
+
+            File dspFolderForRandomization;
+
+            if (savedDSPFolder == null || !savedDSPFolder.exists()) {
+                JFileChooser dspFolderChooser = new JFileChooser();
+                dspFolderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                dspFolderChooser.setDialogTitle("Select DSP Folder for Randomization");
+                dspFolderChooser.setAcceptAllFileFilterUsed(false);
+                int result = dspFolderChooser.showOpenDialog(this);
+
+                if (result != JFileChooser.APPROVE_OPTION) {
+                    return;
+                }
+
+                dspFolderForRandomization = dspFolderChooser.getSelectedFile();
+            }
+            else {
+                dspFolderForRandomization = savedDSPFolder;
+            }
+
+            ArrayList<DSPPair> dspPairs = new ArrayList<>();
+
+            if (dspFolderForRandomization != null) {
+                dspPairs = DSPPair.detectDSPPairs(dspFolderForRandomization);
+            }
+
+            if (dspPairs.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No DSP pairs exist in the DSP folder!");
+                return;
+            }
+
+
+            String[] songNames = getSongNameArray();
+
+            if (songNames == null) {
+                return;
+            }
+
+            Arrays.sort(songNames);
+
+            JPanel mainPanel = new JPanel(new BorderLayout());
+            JPanel topPanel = new JPanel(new BorderLayout());
+
+            JTextField searchField = new JTextField();
+            searchField.setToolTipText("Search songs...");
+            topPanel.add(searchField, BorderLayout.NORTH);
+
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            JButton selectAllButton = new JButton("Select All");
+            JButton selectNoneButton = new JButton("Select None");
+
+            buttonPanel.add(selectAllButton);
+            buttonPanel.add(selectNoneButton);
+            topPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+            JPanel checkboxPanel = new JPanel();
+            checkboxPanel.setLayout(new BoxLayout(checkboxPanel, BoxLayout.Y_AXIS));
+
+            JCheckBox[] songCheckboxes = new JCheckBox[songNames.length];
+
+            for (int i=0; i<songNames.length; i++) {
+                songCheckboxes[i] = new JCheckBox(songNames[i]);
+                checkboxPanel.add(songCheckboxes[i]);
+            }
+
+            JScrollPane scrollPane = new JScrollPane(checkboxPanel);
+            scrollPane.setPreferredSize(new Dimension(400, 400));
+
+            mainPanel.add(topPanel, BorderLayout.NORTH);
+            mainPanel.add(scrollPane, BorderLayout.CENTER);
+
+            searchField.getDocument().addDocumentListener(new DocumentListener() {
+                private void filter() {
+                    String query = searchField.getText().trim().toLowerCase();
+
+                    checkboxPanel.removeAll();
+
+                    for (int i = 0; i < songNames.length; i++) {
+                        String songName = songNames[i].toLowerCase();
+                        JCheckBox cb = songCheckboxes[i];
+
+                        if (query.isEmpty() || songName.contains(query)) {
+                            checkboxPanel.add(cb);
+                        }
+                    }
+
+                    checkboxPanel.revalidate();
+                    checkboxPanel.repaint();
+                }
+
+                @Override
+                public void insertUpdate(DocumentEvent e) { filter(); }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) { filter(); }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) { filter(); }
+            });
+
+            selectAllButton.addActionListener(ev -> {
+                for (JCheckBox cb : songCheckboxes) {
+                    cb.setSelected(true);
+                }
+            });
+
+            selectNoneButton.addActionListener(ev -> {
+                for (JCheckBox cb : songCheckboxes) {
+                    cb.setSelected(false);
+                }
+            });
+
+            int confirm = JOptionPane.showConfirmDialog(
+                    null,
+                    mainPanel,
+                    "Select Songs to Randomize",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE
+            );
+
+            if (confirm != JOptionPane.OK_OPTION) {
+                return;
+            }
+
+            boolean atLeastOneSelected = false;
+            for (JCheckBox cb : songCheckboxes) {
+                if (cb.isSelected()) {
+                    atLeastOneSelected = true;
+                    break;
+                }
+            }
+            if (!atLeastOneSelected) {
+                JOptionPane.showMessageDialog(this, "You must select at least one song");
+                return;
+            }
+
+            int minimizeRepeatsResponse = JOptionPane.showConfirmDialog(
+                    null,
+                    "Do you want to minimize repeat replacement songs?",
+                    "Minimize Repeats",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            boolean minimizeRepeats;
+            minimizeRepeats = minimizeRepeatsResponse == JOptionPane.YES_OPTION;
+
+            Random rng = new Random();
+            List<DSPPair> dspPairPool = new ArrayList<>(dspPairs);
+
+            int songCheckboxIndex = 0;
+            for (String songName : songNames) {
+
+                JCheckBox songRandomized = songCheckboxes[songCheckboxIndex];
+                songCheckboxIndex++;
+
+                if (songRandomized == null || !songRandomized.isSelected()) {
+                    continue;
+                }
+
+                if (dspPairPool.isEmpty()) {
+                    dspPairPool.addAll(dspPairs);
+                }
+
+                int randomIndex = rng.nextInt(dspPairPool.size());
+
+                DSPPair chosenSongPair;
+                if (minimizeRepeats) {
+                    chosenSongPair = dspPairPool.remove(randomIndex);
+                }
+                else {
+                    chosenSongPair = dspPairPool.get(randomIndex);
+                }
+
+                int songIndex = getSongIndexFromName(songName);
+
+                if (songIndex == -1) {
+                    continue;
+                }
+
+                try {
+                    boolean replacedSuccessfully = SongReplacer.replaceSong(nlxwbFile, chosenSongPair.getLeft(), chosenSongPair.getRight(), songIndex, deleteDSPAfterModify.isSelected());
+
+                    if (replacedSuccessfully) {
+                        File idspFile = new File("temp.idsp");
+                        idspFile.delete();
+                    }
+                }
+                catch (Exception ex) {
+                    return;
+                }
+            }
+
+            JOptionPane.showMessageDialog(this, "Randomization completed.");
         }
 
         if (e.getSource() == addToQueueButton) {
