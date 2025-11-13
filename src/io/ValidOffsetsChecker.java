@@ -15,14 +15,15 @@ public class ValidOffsetsChecker {
         ArrayList<Integer> nlxwbOffsets = OffsetGetter.findIDSPOffsets(fileData);
 
         if (nlxwbFile.getName().equals("STREAM_GEN_Music.nlxwb")) {
-            if (nlxwbOffsets.size() < StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS.length) {
+            int streamSongOffsetLength = StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS.length;
+            if (nlxwbOffsets.size() < streamSongOffsetLength) {
                 return false;
             }
 
-            for (int i=0; i<nlxwbOffsets.size(); i++) {
+            for (int i = 0; i< streamSongOffsetLength; i++) {
                 boolean matchFound = false;
 
-                for (int j=0; j<StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS.length; j++) {
+                for (int j = 0; j< streamSongOffsetLength; j++) {
                     if (nlxwbOffsets.get(i) == StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[j]) {
                         matchFound = true;
                         break;
@@ -36,14 +37,15 @@ public class ValidOffsetsChecker {
         }
 
         else if (nlxwbFile.getName().equals("FE_GEN_Music.nlxwb")) {
-            if (nlxwbOffsets.size() < StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONGS.length) {
+            int menuSongOffsetLength = StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONG_OFFSETS.length;
+            if (nlxwbOffsets.size() < menuSongOffsetLength) {
                 return false;
             }
 
-            for (int i=0; i<nlxwbOffsets.size(); i++) {
+            for (int i = 0; i< menuSongOffsetLength; i++) {
                 boolean matchFound = false;
 
-                for (int j=0; j<StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONG_OFFSETS.length; j++) {
+                for (int j = 0; j< menuSongOffsetLength; j++) {
                     if (nlxwbOffsets.get(i) == StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONG_OFFSETS[j]) {
                         matchFound = true;
                         break;
