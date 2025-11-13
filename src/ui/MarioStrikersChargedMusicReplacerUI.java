@@ -71,6 +71,54 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         gbc.gridx = 1;
         songPanel.add(songSelector, gbc);
 
+        JLabel filterLabel = new JLabel("Search Songs:");
+        JTextField songSearchField = new JTextField();
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        songPanel.add(filterLabel, gbc);
+
+        gbc.gridx = 1;
+        songPanel.add(songSearchField, gbc);
+
+        songSearchField.getDocument().addDocumentListener(new DocumentListener() {
+            private void filterSongs() {
+                String filterText = songSearchField.getText().toLowerCase();
+                String[] songNameArray = getSongNameArray();
+
+                String currentSelection = (String) songSelector.getSelectedItem();
+
+                ArrayList<String> filtered = new ArrayList<>();
+                for (String song : songNameArray) {
+                    if (song.toLowerCase().contains(filterText)) {
+                        filtered.add(song);
+                    }
+                }
+
+                Collections.sort(filtered);
+                DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(filtered.toArray(new String[0]));
+                songSelector.setModel(model);
+
+                if (currentSelection != null && filtered.contains(currentSelection)) {
+                    songSelector.setSelectedItem(currentSelection);
+                }
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                filterSongs();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                filterSongs();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                filterSongs();
+            }
+        });
 
         JPanel dumpReplacePanel = new JPanel(new GridBagLayout());
         dumpReplacePanel.setBorder(BorderFactory.createTitledBorder("Dump/Replace Songs"));
@@ -166,6 +214,34 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         queuePanel.add(queueButtonPanel, BorderLayout.SOUTH);
 
         add(queuePanel, BorderLayout.SOUTH);
+    }
+
+    private String[] getSongNameArray() {
+        Song[] songArray;
+        String[] songNameArray = new String[0];
+
+        if (nlxwbPath == null || nlxwbPath.isEmpty()) {
+            return songNameArray;
+        }
+
+        if (nlxwbPath.endsWith("STREAM_GEN_Music.nlxwb")) {
+            songNameArray = new String[StrikersChargedConstants.STRIKERS_CHARGED_SONGS.length];
+            songArray = StrikersChargedConstants.STRIKERS_CHARGED_SONGS;
+
+            for (int i=0; i<songNameArray.length; i++) {
+                songNameArray[i] = songArray[i].getSongDisplayName();
+            }
+        }
+        else if (nlxwbPath.endsWith("FE_GEN_Music.nlxwb")) {
+            songNameArray = new String[StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONGS.length];
+            songArray = StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONGS;
+
+            for (int i=0; i<songNameArray.length; i++) {
+                songNameArray[i] = songArray[i].getSongDisplayName();
+            }
+        }
+
+        return songNameArray;
     }
 
     private void useSavedDSPFolder() {
