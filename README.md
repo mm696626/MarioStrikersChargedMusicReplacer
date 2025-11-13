@@ -1,7 +1,7 @@
 # MarioStrikersChargedMusicReplacer
 
 ### Mario Strikers Charged Music Replacer
-* A tool allows you to replace music in the STREAM_GEN_Music.nlxwb and FE_GEN_Music.nlxwb files of Mario Strikers Charged
+* A tool allows you to replace music in the STREAM_GEN_Music.nlxwb (**for gameplay songs**) and FE_GEN_Music.nlxwb (**for menu songs**) files of Mario Strikers Charged
 * When replacing, **you must have the corresponding resbun file in the same location**
 * Note that this won't let you replace character themes and such since unfortunately they have character voices baked into them and are in another file anyway
 
