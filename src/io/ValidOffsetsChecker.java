@@ -14,24 +14,48 @@ public class ValidOffsetsChecker {
         byte[] fileData = Files.readAllBytes(nlxwbFile.toPath());
         ArrayList<Integer> nlxwbOffsets = OffsetGetter.findIDSPOffsets(fileData);
 
-        if (nlxwbOffsets.size() != StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS.length) {
-            return false;
-        }
-
-        for (int i=0; i<nlxwbOffsets.size(); i++) {
-            boolean matchFound = false;
-
-            for (int j=0; j<StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS.length; j++) {
-                if (nlxwbOffsets.get(i) == StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[j]) {
-                    matchFound = true;
-                    break;
-                }
-            }
-
-            if (!matchFound) {
+        if (nlxwbFile.getName().equals("STREAM_GEN_Music.nlxwb")) {
+            if (nlxwbOffsets.size() != StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS.length) {
                 return false;
             }
+
+            for (int i=0; i<nlxwbOffsets.size(); i++) {
+                boolean matchFound = false;
+
+                for (int j=0; j<StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS.length; j++) {
+                    if (nlxwbOffsets.get(i) == StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[j]) {
+                        matchFound = true;
+                        break;
+                    }
+                }
+
+                if (!matchFound) {
+                    return false;
+                }
+            }
         }
+
+        else if (nlxwbFile.getName().equals("FE_GEN_Music.nlxwb")) {
+            if (nlxwbOffsets.size() != StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONGS.length) {
+                return false;
+            }
+
+            for (int i=0; i<nlxwbOffsets.size(); i++) {
+                boolean matchFound = false;
+
+                for (int j=0; j<StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONG_OFFSETS.length; j++) {
+                    if (nlxwbOffsets.get(i) == StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONG_OFFSETS[j]) {
+                        matchFound = true;
+                        break;
+                    }
+                }
+
+                if (!matchFound) {
+                    return false;
+                }
+            }
+        }
+
 
         return true;
     }

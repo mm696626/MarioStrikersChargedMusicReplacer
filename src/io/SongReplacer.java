@@ -13,39 +13,61 @@ public class SongReplacer {
 
     private static final int DSP_HEADER_SIZE = 0x60;
     private static final int INTERLEAVE_CHUNK_SIZE = 0x6B40;
+    private static final int INTERLEAVE_CHUNK_SIZE_MENU = 0xD680;
 
 
     public static boolean replaceSong(File nlxwbFile, File leftChannelFile, File rightChannelFile, int songIndex, boolean deleteDSPAfterModify) throws IOException {
         File idspFile = new File("temp.idsp");
 
-        createIDSPFile(leftChannelFile, rightChannelFile, idspFile);
-
         long allowedFileSize;
 
-        if (songIndex + 1 >= StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS.length) {
-            allowedFileSize = nlxwbFile.length() - StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex];
+        boolean isStream = nlxwbFile.getName().endsWith("STREAM_GEN_Music.nlxwb");
+        boolean isFrontend = nlxwbFile.getName().endsWith("FE_GEN_Music.nlxwb");
+
+        if (isStream) {
+            if (songIndex + 1 >= StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS.length) {
+                allowedFileSize = nlxwbFile.length() - StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex];
+            }
+            else {
+                allowedFileSize = StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex+1] - StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex];
+            }
+        }
+        else if (isFrontend) {
+            if (songIndex + 1 >= StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONGS.length) {
+                allowedFileSize = nlxwbFile.length() - StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONG_OFFSETS[songIndex];
+            }
+            else {
+                allowedFileSize = StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONG_OFFSETS[songIndex+1] - StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONG_OFFSETS[songIndex];
+            }
         }
         else {
-            allowedFileSize = StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex+1] - StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex];
+            return false;
         }
 
+        createIDSPFile(leftChannelFile, rightChannelFile, idspFile, isStream);
+
         if (idspFile.length() > allowedFileSize) {
-
-            String songName = getSongNameFromIndex(songIndex);
-
-            JOptionPane.showMessageDialog(null, "Your replacement for " + songName + " is too large!");
+            JOptionPane.showMessageDialog(null, "Your replacement is too large!");
             idspFile.delete();
             return false;
         }
 
         byte[] idspFileBytes = Files.readAllBytes(idspFile.toPath());
 
-        try (RandomAccessFile nlxwbRaf = new RandomAccessFile(nlxwbFile, "rw")) {
-            nlxwbRaf.seek(StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex]);
-            nlxwbRaf.write(idspFileBytes);
+        if (isStream) {
+            try (RandomAccessFile nlxwbRaf = new RandomAccessFile(nlxwbFile, "rw")) {
+                nlxwbRaf.seek(StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex]);
+                nlxwbRaf.write(idspFileBytes);
+            }
+        }
+        else {
+            try (RandomAccessFile nlxwbRaf = new RandomAccessFile(nlxwbFile, "rw")) {
+                nlxwbRaf.seek(StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONG_OFFSETS[songIndex]);
+                nlxwbRaf.write(idspFileBytes);
+            }
         }
 
-        logSongReplacement(songIndex, leftChannelFile, rightChannelFile, nlxwbFile.getAbsolutePath());
+        logSongReplacement(songIndex, leftChannelFile, rightChannelFile, nlxwbFile.getAbsolutePath(), isStream);
 
         if (deleteDSPAfterModify) {
             leftChannelFile.delete();
@@ -55,19 +77,28 @@ public class SongReplacer {
         return true;
     }
 
-    private static String getSongNameFromIndex(int songIndex) {
+    private static String getSongNameFromIndex(int songIndex, boolean isStream) {
         String songName = "";
 
-        for (int i = 0; i< StrikersChargedConstants.STRIKERS_CHARGED_SONGS.length; i++) {
-            if (songIndex == StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongIndex()) {
-                songName = StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongDisplayName();
+        if (isStream) {
+            for (int i = 0; i< StrikersChargedConstants.STRIKERS_CHARGED_SONGS.length; i++) {
+                if (songIndex == StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongIndex()) {
+                    songName = StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongDisplayName();
+                }
+            }
+        }
+        else {
+            for (int i = 0; i< StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONGS.length; i++) {
+                if (songIndex == StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONGS[i].getSongIndex()) {
+                    songName = StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONGS[i].getSongDisplayName();
+                }
             }
         }
 
         return songName;
     }
 
-    private static void logSongReplacement(int songIndex, File leftChannel, File rightChannel, String nlxwbFilePath) {
+    private static void logSongReplacement(int songIndex, File leftChannel, File rightChannel, String nlxwbFilePath, boolean isStream) {
         File songReplacementsFolder = new File("song_replacements");
         if (!songReplacementsFolder.exists()) {
             songReplacementsFolder.mkdirs();
@@ -99,7 +130,7 @@ public class SongReplacer {
             }
         }
 
-        String songName = getSongNameFromIndex(songIndex);
+        String songName = getSongNameFromIndex(songIndex, isStream);
 
         songMap.put(songName, leftChannel.getName() + "|" + rightChannel.getName());
 
@@ -112,7 +143,7 @@ public class SongReplacer {
         }
     }
 
-    public static void createIDSPFile(File leftFile, File rightFile, File idspFile) throws IOException {
+    public static void createIDSPFile(File leftFile, File rightFile, File idspFile, boolean isStream) throws IOException {
         try (RandomAccessFile left = new RandomAccessFile(leftFile, "r");
              RandomAccessFile right = new RandomAccessFile(rightFile, "r");
              FileOutputStream out = new FileOutputStream(idspFile)) {
@@ -121,7 +152,17 @@ public class SongReplacer {
 
             out.write(new byte[]{0x49, 0x44, 0x53, 0x50}); //IDSP magic
 
-            out.write(new byte[]{0x00, 0x00, 0x6B, 0x40}); //interleave size
+            int interleave;
+
+            if (isStream) {
+                out.write(new byte[]{0x00, 0x00, 0x6B, 0x40}); //interleave size
+                interleave = INTERLEAVE_CHUNK_SIZE;
+            }
+
+            else {
+                out.write(new byte[]{0x00, 0x00, (byte) 0xD6, (byte) 0x80}); //interleave size
+                interleave = INTERLEAVE_CHUNK_SIZE_MENU;
+            }
 
             int dataSize = (int)(audioSize - DSP_HEADER_SIZE);
             out.write(intToBytesBE(dataSize));
@@ -133,8 +174,8 @@ public class SongReplacer {
             out.write(leftHeader);
             out.write(rightHeader);
 
-            byte[] leftChunk = new byte[INTERLEAVE_CHUNK_SIZE];
-            byte[] rightChunk = new byte[INTERLEAVE_CHUNK_SIZE];
+            byte[] leftChunk = new byte[interleave];
+            byte[] rightChunk = new byte[interleave];
 
             while (true) {
                 int leftRead = left.read(leftChunk);
@@ -142,14 +183,14 @@ public class SongReplacer {
 
                 if (leftRead == -1 && rightRead == -1) break;
 
-                if (leftRead > 0 && leftRead < INTERLEAVE_CHUNK_SIZE) {
-                    for (int i = leftRead; i < INTERLEAVE_CHUNK_SIZE; i++) leftChunk[i] = 0;
-                    leftRead = INTERLEAVE_CHUNK_SIZE;
+                if (leftRead > 0 && leftRead < interleave) {
+                    for (int i = leftRead; i < interleave; i++) leftChunk[i] = 0;
+                    leftRead = interleave;
                 }
 
-                if (rightRead > 0 && rightRead < INTERLEAVE_CHUNK_SIZE) {
-                    for (int i = rightRead; i < INTERLEAVE_CHUNK_SIZE; i++) rightChunk[i] = 0;
-                    rightRead = INTERLEAVE_CHUNK_SIZE;
+                if (rightRead > 0 && rightRead < interleave) {
+                    for (int i = rightRead; i < interleave; i++) rightChunk[i] = 0;
+                    rightRead = interleave;
                 }
 
                 if (leftRead > 0) out.write(leftChunk, 0, leftRead);

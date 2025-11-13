@@ -40,6 +40,21 @@ public class StrikersChargedConstants {
             new Song(32, "Credits")
     };
 
+    public static final Song[] STRIKERS_CHARGED_MENU_SONGS = {
+            new Song(0, "Record Breakers"),
+            new Song(1, "End of Championship"),
+            new Song(2, "Road to the Striker Cup B"),
+            new Song(3, "Road to the Striker Cup A"),
+            new Song(4, "To the Next Round"),
+            new Song(5, "Credits"),
+            new Song(6, "Record Breakers (Loop)"),
+            new Song(7, "Main Menu"),
+            new Song(8, "Pause Menu"),
+            new Song(9, "Title Screen"),
+            new Song(10, "Results"),
+            new Song(11, "Broken Dreams")
+    };
+
     //hardcoding these in the edge case the DSP data somehow generates IDSP
     //yes, these are identical in all versions of the game
     public static final long[] STRIKERS_CHARGED_SONG_OFFSETS = {
@@ -76,5 +91,20 @@ public class StrikersChargedConstants {
             0x0DFD3F40,
             0x0E3E9B20,
             0x0E553B80
+    };
+
+    public static final long[] STRIKERS_CHARGED_MENU_SONG_OFFSETS = {
+            0x00000000,
+            0x000A0EE0,
+            0x0049BDC0,
+            0x0087BFA0,
+            0x009A2F80,
+            0x00AC9F60,
+            0x01163340,
+            0x012DAA20,
+            0x01360C00,
+            0x01C123E0,
+            0x01FD78C0,
+            0x023ED4A0
     };
 }

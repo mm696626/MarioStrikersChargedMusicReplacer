@@ -26,7 +26,7 @@ import java.util.Date;
 
 public class MarioStrikersChargedMusicReplacerUI extends JFrame implements ActionListener {
 
-    private JButton pickLeftChannel, pickRightChannel, dumpAllSongsFromNLXWB, createIDSP, replaceSong, selectNLXWB;
+    private JButton pickLeftChannel, pickRightChannel, dumpAllSongsFromNLXWB, replaceSong, selectNLXWB;
     private String leftChannelPath = "";
     private String rightChannelPath = "";
 
@@ -67,59 +67,10 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         gbc.gridy = 0;
         songPanel.add(new JLabel("Song:"), gbc);
 
-        songSelector = new JComboBox<>(initializeSongArray());
+        songSelector = new JComboBox<>();
         gbc.gridx = 1;
         songPanel.add(songSelector, gbc);
 
-
-        JLabel filterLabel = new JLabel("Search Songs:");
-        JTextField songSearchField = new JTextField();
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        songPanel.add(filterLabel, gbc);
-
-        gbc.gridx = 1;
-        songPanel.add(songSearchField, gbc);
-
-        songSearchField.getDocument().addDocumentListener(new DocumentListener() {
-            private void filterSongs() {
-                String filterText = songSearchField.getText().toLowerCase();
-                String[] songNameArray = getSongNameArray();
-
-                String currentSelection = (String) songSelector.getSelectedItem();
-
-                ArrayList<String> filtered = new ArrayList<>();
-                for (String song : songNameArray) {
-                    if (song.toLowerCase().contains(filterText)) {
-                        filtered.add(song);
-                    }
-                }
-
-                Collections.sort(filtered);
-                DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(filtered.toArray(new String[0]));
-                songSelector.setModel(model);
-
-                if (currentSelection != null && filtered.contains(currentSelection)) {
-                    songSelector.setSelectedItem(currentSelection);
-                }
-            }
-
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                filterSongs();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                filterSongs();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                filterSongs();
-            }
-        });
 
         JPanel dumpReplacePanel = new JPanel(new GridBagLayout());
         dumpReplacePanel.setBorder(BorderFactory.createTitledBorder("Dump/Replace Songs"));
@@ -137,9 +88,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
         dumpAllSongsFromNLXWB = new JButton("Dump All Songs from NLXWB");
         dumpAllSongsFromNLXWB.addActionListener(this);
-
-        createIDSP = new JButton("Create IDSP");
-        createIDSP.addActionListener(this);
 
         replaceSong = new JButton("Replace Song");
         replaceSong.addActionListener(this);
@@ -163,13 +111,10 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         dumpReplacePanel.add(rightChannelLabel, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 2;
+        dumpReplaceGBC.gridwidth = 2;
         dumpReplacePanel.add(dumpAllSongsFromNLXWB, dumpReplaceGBC);
 
-        dumpReplaceGBC.gridx = 1; dumpReplaceGBC.gridy = 2;
-        dumpReplacePanel.add(createIDSP, dumpReplaceGBC);
-
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 3;
-        dumpReplaceGBC.gridwidth = 2;
         dumpReplacePanel.add(replaceSong, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 4;
@@ -221,32 +166,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         queuePanel.add(queueButtonPanel, BorderLayout.SOUTH);
 
         add(queuePanel, BorderLayout.SOUTH);
-    }
-
-    private String[] initializeSongArray() {
-
-        String[] initialSongArray = new String[StrikersChargedConstants.STRIKERS_CHARGED_SONGS.length];
-
-        for (int i=0; i<initialSongArray.length; i++) {
-            initialSongArray[i] = StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongDisplayName();
-        }
-
-        Arrays.sort(initialSongArray, String.CASE_INSENSITIVE_ORDER);
-        return initialSongArray;
-    }
-
-    private String[] getSongNameArray() {
-        Song[] songArray;
-        String[] songNameArray;
-
-        songNameArray = new String[StrikersChargedConstants.STRIKERS_CHARGED_SONGS.length];
-        songArray = StrikersChargedConstants.STRIKERS_CHARGED_SONGS;
-
-        for (int i=0; i<songNameArray.length; i++) {
-            songNameArray[i] = songArray[i].getSongDisplayName();
-        }
-
-        return songNameArray;
     }
 
     private void useSavedDSPFolder() {
@@ -566,18 +485,73 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         if (selectedNLXWB.getName().equals("STREAM_GEN_Music.nlxwb") && validOffsets) {
             nlxwbPath = selectedNLXWB.getAbsolutePath();
             nlxwbFilePathLabel.setText("Selected NLXWB: " + nlxwbPath);
+            populateSongsForNLXWB("STREAM_GEN_Music");
+
+            if (jobQueueModel != null) {
+                jobQueueModel.clear();
+            }
+        }
+        else if (selectedNLXWB.getName().equals("FE_GEN_Music.nlxwb") && validOffsets) {
+            nlxwbPath = selectedNLXWB.getAbsolutePath();
+            nlxwbFilePathLabel.setText("Selected NLXWB: " + nlxwbPath);
+            populateSongsForNLXWB("FE_GEN_Music");
+
+            if (jobQueueModel != null) {
+                jobQueueModel.clear();
+            }
         }
         else {
             JOptionPane.showMessageDialog(this, "This isn't the correct NLXWB. The correct one is STREAM_GEN_Music.nlxwb");
         }
     }
 
-    private int getSongIndexFromName(String selectedSong) {
-        for (int i = 0; i< StrikersChargedConstants.STRIKERS_CHARGED_SONGS.length; i++) {
-            if (selectedSong.equals(StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongDisplayName())) {
-                return StrikersChargedConstants.STRIKERS_CHARGED_SONGS[i].getSongIndex();
+    private void populateSongsForNLXWB(String nlxwbType) {
+        ArrayList<String> songs = new ArrayList<>();
+
+        if (nlxwbType.equals("STREAM_GEN_Music")) {
+            for (Song song : StrikersChargedConstants.STRIKERS_CHARGED_SONGS) {
+                songs.add(song.getSongDisplayName());
             }
         }
+        else if (nlxwbType.equals("FE_GEN_Music")) {
+            for (Song song : StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONGS) {
+                songs.add(song.getSongDisplayName());
+            }
+        }
+
+        if (songs.isEmpty()) {
+            songSelector.setModel(new DefaultComboBoxModel<>(new String[] {"No songs available"}));
+        } else {
+            Collections.sort(songs, String.CASE_INSENSITIVE_ORDER);
+            songSelector.setModel(new DefaultComboBoxModel<>(songs.toArray(new String[0])));
+        }
+    }
+
+
+    private int getSongIndexFromName(String selectedSong) {
+        if (nlxwbPath == null) {
+            return -1;
+        }
+
+        boolean isStream = nlxwbPath.endsWith("STREAM_GEN_Music.nlxwb");
+        boolean isFrontEnd = nlxwbPath.endsWith("FE_GEN_Music.nlxwb");
+
+        if (isStream) {
+            for (Song song : StrikersChargedConstants.STRIKERS_CHARGED_SONGS) {
+                if (selectedSong.equals(song.getSongDisplayName())) {
+                    return song.getSongIndex();
+                }
+            }
+        }
+
+        if (isFrontEnd) {
+            for (Song song : StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONGS) {
+                if (selectedSong.equals(song.getSongDisplayName())) {
+                    return song.getSongIndex();
+                }
+            }
+        }
+
 
         return -1;
     }
@@ -649,71 +623,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             }
 
             JOptionPane.showMessageDialog(this, "Songs have been dumped!");
-        }
-
-        if (e.getSource() == createIDSP) {
-            if (leftChannelPath.isEmpty() || rightChannelPath.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Either the left or right channel wasn't chosen!");
-                return;
-            }
-
-            File leftChannelFile = new File(leftChannelPath);
-            File rightChannelFile = new File(rightChannelPath);
-
-            if (!leftChannelFile.exists() || !rightChannelFile.exists()) {
-                JOptionPane.showMessageDialog(this, "Either the left or right channel doesn't exist!");
-                return;
-            }
-
-            File idspFile;
-
-            JFileChooser idspFileSaver = new JFileChooser();
-            idspFileSaver.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            idspFileSaver.setDialogTitle("Select IDSP Save Location");
-
-            FileNameExtensionFilter idspFilter = new FileNameExtensionFilter("IDSP Files", "idsp");
-            idspFileSaver.setFileFilter(idspFilter);
-            idspFileSaver.setAcceptAllFileFilterUsed(false);
-
-            int saveLocationSelected = idspFileSaver.showSaveDialog(this);
-            if (saveLocationSelected == JFileChooser.APPROVE_OPTION) {
-                idspFile = idspFileSaver.getSelectedFile();
-
-                String name = idspFile.getName();
-                String baseName;
-                String extension = "";
-
-                int dotIndex = name.lastIndexOf('.');
-                if (dotIndex > 0 && dotIndex < name.length() - 1) {
-                    baseName = name.substring(0, dotIndex);
-                    extension = name.substring(dotIndex + 1);
-                } else {
-                    baseName = name;
-                }
-
-                baseName = baseName.replaceAll("[^a-zA-Z0-9]", "_");
-
-                if (extension.isEmpty() || !extension.equalsIgnoreCase("idsp")) {
-                    extension = "idsp";
-                }
-
-                String sanitizedFileName = baseName + "." + extension;
-                idspFile = new File(idspFile.getParentFile(), sanitizedFileName);
-
-                System.out.println("Saving to: " + idspFile.getAbsolutePath());
-            }
-            else {
-                return;
-            }
-
-            try {
-                SongReplacer.createIDSPFile(leftChannelFile, rightChannelFile, idspFile);
-                JOptionPane.showMessageDialog(this, "IDSP has been created!");
-            }
-            catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "The IDSP file couldn't be created!");
-                return;
-            }
         }
 
         if (e.getSource() == selectNLXWB) {
