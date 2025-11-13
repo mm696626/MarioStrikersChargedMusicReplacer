@@ -21,6 +21,12 @@ public class SongReplacer {
 
         long allowedFileSize;
 
+        File resbunFile = new File(nlxwbFile.getParentFile(), nlxwbFile.getName().replace(".nlxwb", ".resbun"));
+        if (!resbunFile.exists()) {
+            JOptionPane.showMessageDialog(null, "Could not find matching .resbun file in the same folder!");
+            return false;
+        }
+
         boolean isStream = nlxwbFile.getName().endsWith("STREAM_GEN_Music.nlxwb");
         boolean isFrontend = nlxwbFile.getName().endsWith("FE_GEN_Music.nlxwb");
 
@@ -45,25 +51,41 @@ public class SongReplacer {
         }
 
         createIDSPFile(leftChannelFile, rightChannelFile, idspFile, isStream);
-
-        if (idspFile.length() > allowedFileSize) {
-            JOptionPane.showMessageDialog(null, "Your replacement is too large!");
-            idspFile.delete();
-            return false;
-        }
-
         byte[] idspFileBytes = Files.readAllBytes(idspFile.toPath());
 
-        if (isStream) {
+        if (idspFile.length() > allowedFileSize) {
+            long[] offsetTable;
+
+            if (isStream) {
+                offsetTable = StrikersChargedConstants.STRIKERS_CHARGED_RESBUN_OFFSETS;
+            }
+            else {
+                offsetTable = StrikersChargedConstants.STRIKERS_CHARGED_MENU_RESBUN_OFFSETS;
+            }
+            try (RandomAccessFile resbunRaf = new RandomAccessFile(resbunFile, "rw")) {
+                resbunRaf.seek(offsetTable[songIndex]);
+                resbunRaf.writeInt((int)nlxwbFile.length());
+                resbunRaf.writeInt((int)idspFile.length());
+            }
+
             try (RandomAccessFile nlxwbRaf = new RandomAccessFile(nlxwbFile, "rw")) {
-                nlxwbRaf.seek(StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex]);
+                nlxwbRaf.seek(nlxwbRaf.length());
                 nlxwbRaf.write(idspFileBytes);
             }
         }
+
         else {
-            try (RandomAccessFile nlxwbRaf = new RandomAccessFile(nlxwbFile, "rw")) {
-                nlxwbRaf.seek(StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONG_OFFSETS[songIndex]);
-                nlxwbRaf.write(idspFileBytes);
+            if (isStream) {
+                try (RandomAccessFile nlxwbRaf = new RandomAccessFile(nlxwbFile, "rw")) {
+                    nlxwbRaf.seek(StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS[songIndex]);
+                    nlxwbRaf.write(idspFileBytes);
+                }
+            }
+            else {
+                try (RandomAccessFile nlxwbRaf = new RandomAccessFile(nlxwbFile, "rw")) {
+                    nlxwbRaf.seek(StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONG_OFFSETS[songIndex]);
+                    nlxwbRaf.write(idspFileBytes);
+                }
             }
         }
 

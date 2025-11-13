@@ -15,7 +15,7 @@ public class ValidOffsetsChecker {
         ArrayList<Integer> nlxwbOffsets = OffsetGetter.findIDSPOffsets(fileData);
 
         if (nlxwbFile.getName().equals("STREAM_GEN_Music.nlxwb")) {
-            if (nlxwbOffsets.size() != StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS.length) {
+            if (nlxwbOffsets.size() < StrikersChargedConstants.STRIKERS_CHARGED_SONG_OFFSETS.length) {
                 return false;
             }
 
@@ -36,7 +36,7 @@ public class ValidOffsetsChecker {
         }
 
         else if (nlxwbFile.getName().equals("FE_GEN_Music.nlxwb")) {
-            if (nlxwbOffsets.size() != StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONGS.length) {
+            if (nlxwbOffsets.size() < StrikersChargedConstants.STRIKERS_CHARGED_MENU_SONGS.length) {
                 return false;
             }
 

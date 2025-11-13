@@ -93,6 +93,42 @@ public class StrikersChargedConstants {
             0x0E553B80
     };
 
+    public static final long[] STRIKERS_CHARGED_RESBUN_OFFSETS = {
+            0x2114,
+            0x2130,
+            0x214C,
+            0x2168,
+            0x2184,
+            0x21A0,
+            0x21BC,
+            0x21D8,
+            0x21F4,
+            0x2210,
+            0x222C,
+            0x2248,
+            0x2264,
+            0x2280,
+            0x229C,
+            0x22B8,
+            0x22D4,
+            0x22F0,
+            0x230C,
+            0x2328,
+            0x2344,
+            0x2360,
+            0x237C,
+            0x2398,
+            0x23B4,
+            0x23D0,
+            0x23EC,
+            0x2408,
+            0x2424,
+            0x2440,
+            0x245C,
+            0x2478,
+            0x2494
+    };
+
     public static final long[] STRIKERS_CHARGED_MENU_SONG_OFFSETS = {
             0x00000000,
             0x000A0EE0,
@@ -106,5 +142,20 @@ public class StrikersChargedConstants {
             0x01C123E0,
             0x01FD78C0,
             0x023ED4A0
+    };
+
+    public static final long[] STRIKERS_CHARGED_MENU_RESBUN_OFFSETS = {
+            0xD04,
+            0xD20,
+            0xD3C,
+            0xD58,
+            0xD74,
+            0xD90,
+            0xDAC,
+            0xDC8,
+            0xDE4,
+            0xE00,
+            0xE1C,
+            0xE38
     };
 }
