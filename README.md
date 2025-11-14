@@ -3,11 +3,14 @@
 ### Mario Strikers Charged Music Replacer
 * A tool allows you to replace music in the STREAM_GEN_Music.nlxwb (**for gameplay songs**) and FE_GEN_Music.nlxwb (**for menu songs**) files of Mario Strikers Charged
 * When replacing, **you must have the corresponding resbun file in the same location**
+  * This file contains the offsets and file sizes of the idsps in the nlxwb file
 * Note that this won't let you replace character themes and such since unfortunately they have character voices baked into them and are in another file anyway
+  * This also won't let you replace the match highlights theme and Megastrike theme since they're also located in that file as well
 
 ### Important Note
 * Looping points aren't supported since the game will just ignore them (Strikers 1 does this too btw)
-* The game will just loop start to end, so keep that in mind (so repeat the looping section if needed)
+  * This is a game limitation due to how they programmed the music playback
+* The game will just loop start to end, so keep that in mind (so repeat the looping section if needed or loop it so the start is the loop point)
 
 ### Music Replacement Notes
 * Audio must be in DSP format split into two channels
