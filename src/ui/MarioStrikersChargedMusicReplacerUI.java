@@ -1019,7 +1019,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
             String selectedSong = (String) songSelector.getSelectedItem();
             if (selectedSong == null || selectedSong.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please select a song name before generating.");
+                JOptionPane.showMessageDialog(this, "Please select a song name before replacing.");
                 return;
             }
 
@@ -1197,6 +1197,17 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
                     "Minimize Repeats",
                     JOptionPane.YES_NO_OPTION
             );
+
+            int backupNLXWBresponse = JOptionPane.showConfirmDialog(
+                    this,
+                    "This will modify the NLXWB for all randomizations.\nDo you want to back up the NLXWB file first?",
+                    "Backup?",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (backupNLXWBresponse == JOptionPane.YES_OPTION) {
+                backupNLXWB(nlxwbFile);
+            }
 
             boolean minimizeRepeats;
             minimizeRepeats = minimizeRepeatsResponse == JOptionPane.YES_OPTION;
