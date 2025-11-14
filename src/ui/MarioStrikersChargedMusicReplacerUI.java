@@ -326,21 +326,30 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
                 }
             }
 
-            if (defaultSavedDSPFolder != null && defaultSavedDSPFolder.exists()) {
-                savedDSPFolder = defaultSavedDSPFolder;
+            if (defaultSavedDSPFolder != null) {
                 defaultDSPFolderLabel.setText(defaultSavedDSPFolder.getAbsolutePath());
+
+                if (defaultSavedDSPFolder.exists()) {
+                    savedDSPFolder = defaultSavedDSPFolder;
+                }
             }
 
-            if (defaultOutputFolder != null && defaultOutputFolder.exists()) {
-                savedOutputFolder = defaultOutputFolder;
+            if (defaultOutputFolder != null) {
                 defaultOutputFolderLabel.setText(defaultOutputFolder.getAbsolutePath());
+
+                if (defaultOutputFolder.exists()) {
+                    savedOutputFolder = defaultOutputFolder;
+                }
             }
 
-            if (defaultNLXWB != null && defaultNLXWB.exists()) {
-                nlxwbPath = defaultNLXWB.getAbsolutePath();
-                nlxwbFilePathLabel.setText("Selected NLXWB: " + nlxwbPath);
+            if (defaultNLXWB != null) {
                 defaultNLXWBLabel.setText(defaultNLXWB.getAbsolutePath());
-                populateSongsForNLXWB(defaultNLXWB.getName());
+
+                if (defaultNLXWB.exists()) {
+                    nlxwbPath = defaultNLXWB.getAbsolutePath();
+                    nlxwbFilePathLabel.setText("Selected NLXWB: " + nlxwbPath);
+                    populateSongsForNLXWB(defaultNLXWB.getName());
+                }
             }
 
 
