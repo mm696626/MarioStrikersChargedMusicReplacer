@@ -14,8 +14,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
@@ -29,12 +28,19 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
     private String rightChannelPath = "";
 
     private File savedDSPFolder;
+    private File savedOutputFolder;
+    private File defaultSavedDSPFolder;
+    private File defaultOutputFolder;
+    private File defaultNLXWB;
 
     private String nlxwbPath;
 
     private JLabel leftChannelLabel;
     private JLabel rightChannelLabel;
     private JLabel nlxwbFilePathLabel;
+    private JLabel defaultDSPFolderLabel;
+    private JLabel defaultOutputFolderLabel;
+    private JLabel defaultNLXWBLabel;
 
     private JComboBox<String> songSelector;
 
@@ -49,9 +55,13 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
     public MarioStrikersChargedMusicReplacerUI() {
         setTitle("Mario Strikers Charged Music Replacer");
         generateUI();
+        initSettingsFile();
+        loadSettingsFile();
     }
 
     private void generateUI() {
+
+        JTabbedPane tabbedPane = new JTabbedPane();
 
         JPanel musicReplacerPanel = new JPanel();
         musicReplacerPanel.setLayout(new BoxLayout(musicReplacerPanel, BoxLayout.Y_AXIS));
@@ -187,9 +197,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         musicReplacerPanel.add(Box.createVerticalStrut(10));
         musicReplacerPanel.add(dumpReplacePanel);
 
-        setLayout(new BorderLayout());
-        add(musicReplacerPanel, BorderLayout.CENTER);
-
         JPanel queuePanel = new JPanel(new BorderLayout());
         queuePanel.setBorder(BorderFactory.createTitledBorder("Batch Replacement Job Queue"));
 
@@ -218,7 +225,260 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         queuePanel.add(scrollPane, BorderLayout.CENTER);
         queuePanel.add(queueButtonPanel, BorderLayout.SOUTH);
 
-        add(queuePanel, BorderLayout.SOUTH);
+        JPanel musicReplacerTabPanel = new JPanel();
+        musicReplacerTabPanel.add(musicReplacerPanel);
+        musicReplacerPanel.add(Box.createVerticalStrut(10));
+        musicReplacerPanel.add(queuePanel);
+        tabbedPane.addTab("Music Replacer", musicReplacerTabPanel);
+
+        JPanel settingsPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints settingsGBC = new GridBagConstraints();
+        settingsGBC.insets = new Insets(5, 5, 5, 5);
+        settingsGBC.fill = GridBagConstraints.HORIZONTAL;
+
+        settingsGBC.gridx = 0;
+        settingsGBC.gridy = 0;
+        settingsPanel.add(new JLabel("Default DSP Folder:"), settingsGBC);
+
+        defaultDSPFolderLabel = new JLabel(defaultSavedDSPFolder != null ? defaultSavedDSPFolder.getAbsolutePath() : "None");
+        settingsGBC.gridx = 1;
+        settingsPanel.add(defaultDSPFolderLabel, settingsGBC);
+
+        JButton chooseDefaultDSPButton = new JButton("Change");
+        chooseDefaultDSPButton.addActionListener(e -> chooseDefaultDSPFolder());
+        settingsGBC.gridx = 2;
+        settingsPanel.add(chooseDefaultDSPButton, settingsGBC);
+
+        settingsGBC.gridx = 0;
+        settingsGBC.gridy = 1;
+        settingsPanel.add(new JLabel("Default Output Folder:"), settingsGBC);
+
+        defaultOutputFolderLabel = new JLabel(defaultOutputFolder != null ? defaultOutputFolder.getAbsolutePath() : "None");
+        settingsGBC.gridx = 1;
+        settingsPanel.add(defaultOutputFolderLabel, settingsGBC);
+
+        JButton chooseDefaultOutputFolderButton = new JButton("Change");
+        chooseDefaultOutputFolderButton.addActionListener(e -> chooseDefaultOutputFolder());
+        settingsGBC.gridx = 2;
+        settingsPanel.add(chooseDefaultOutputFolderButton, settingsGBC);
+
+        settingsGBC.gridx = 0;
+        settingsGBC.gridy = 2;
+        settingsPanel.add(new JLabel("Default NLXWB:"), settingsGBC);
+
+        defaultNLXWBLabel = new JLabel(defaultNLXWB != null ? defaultNLXWB.getAbsolutePath() : "None");
+        settingsGBC.gridx = 1;
+        settingsPanel.add(defaultNLXWBLabel, settingsGBC);
+
+        JButton chooseDefaultNLXWBButton = new JButton("Change");
+        chooseDefaultNLXWBButton.addActionListener(e -> chooseDefaultNLXWB());
+        settingsGBC.gridx = 2;
+        settingsPanel.add(chooseDefaultNLXWBButton, settingsGBC);
+
+        JButton resetReplacerButton = new JButton("Reset Replacer");
+        resetReplacerButton.addActionListener(e -> resetReplacer());
+        settingsGBC.gridx = 0;
+        settingsGBC.gridy = 3;
+        settingsGBC.gridwidth = 3;
+        settingsPanel.add(resetReplacerButton, settingsGBC);
+
+        tabbedPane.addTab("Settings", settingsPanel);
+
+        add(tabbedPane);
+    }
+
+    private void initSettingsFile() {
+        File settingsFile = new File("settings.txt");
+        PrintWriter outputStream;
+        if (!settingsFile.exists()) {
+            try {
+                outputStream = new PrintWriter(new FileOutputStream(settingsFile));
+            }
+            catch (FileNotFoundException f) {
+                return;
+            }
+
+            outputStream.println("defaultSavedDSPFolder:None");
+            outputStream.println("defaultOutputFolder:None");
+            outputStream.println("defaultNLXWB:None");
+            outputStream.close();
+        }
+    }
+
+    private void loadSettingsFile() {
+        File settingsFile = new File("settings.txt");
+        try (Scanner inputStream = new Scanner(new FileInputStream(settingsFile))) {
+            while (inputStream.hasNextLine()) {
+                String line = inputStream.nextLine();
+                String[] parts = line.split(":", 2);
+                if (parts.length < 2) continue;
+                String key = parts[0];
+                String value = parts[1];
+
+                if (key.equals("defaultSavedDSPFolder")) {
+                    if (!value.equals("None")) defaultSavedDSPFolder = new File(value);
+                }
+                if (key.equals("defaultOutputFolder")) {
+                    if (!value.equals("None")) defaultOutputFolder = new File(value);
+                }
+                if (key.equals("defaultNLXWB")) {
+                    if (!value.equals("None")) defaultNLXWB = new File(value);
+                }
+            }
+
+            if (defaultSavedDSPFolder != null && defaultSavedDSPFolder.exists()) {
+                savedDSPFolder = defaultSavedDSPFolder;
+                defaultDSPFolderLabel.setText(defaultSavedDSPFolder.getAbsolutePath());
+            }
+
+            if (defaultOutputFolder != null && defaultOutputFolder.exists()) {
+                savedOutputFolder = defaultOutputFolder;
+                defaultOutputFolderLabel.setText(defaultOutputFolder.getAbsolutePath());
+            }
+
+            if (defaultNLXWB != null && defaultNLXWB.exists()) {
+                nlxwbPath = defaultNLXWB.getAbsolutePath();
+                nlxwbFilePathLabel.setText("Selected NLXWB: " + nlxwbPath);
+                defaultNLXWBLabel.setText(defaultNLXWB.getAbsolutePath());
+                populateSongsForNLXWB(defaultNLXWB.getName());
+            }
+
+
+        } catch (FileNotFoundException e) {
+            return;
+        }
+    }
+
+    private void chooseDefaultDSPFolder() {
+        JFileChooser defaultDSPFolderChooser = new JFileChooser();
+        defaultDSPFolderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        defaultDSPFolderChooser.setDialogTitle("Select Default DSP Folder");
+        defaultDSPFolderChooser.setAcceptAllFileFilterUsed(false);
+        int result = defaultDSPFolderChooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            defaultSavedDSPFolder = defaultDSPFolderChooser.getSelectedFile();
+            defaultDSPFolderLabel.setText(defaultSavedDSPFolder.getAbsolutePath());
+            savedDSPFolder = defaultSavedDSPFolder;
+            saveSettingsToFile();
+        }
+    }
+
+    private void chooseDefaultOutputFolder() {
+        JFileChooser defaultOutputFolderChooser = new JFileChooser();
+        defaultOutputFolderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        defaultOutputFolderChooser.setDialogTitle("Select Default Output Folder");
+        defaultOutputFolderChooser.setAcceptAllFileFilterUsed(false);
+        int result = defaultOutputFolderChooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            defaultOutputFolder = defaultOutputFolderChooser.getSelectedFile();
+            defaultOutputFolderLabel.setText(defaultOutputFolder.getAbsolutePath());
+            savedOutputFolder = defaultOutputFolder;
+            saveSettingsToFile();
+        }
+    }
+
+    private void chooseDefaultNLXWB() {
+        JFileChooser nlxwbFileChooser = new JFileChooser();
+        nlxwbFileChooser.setDialogTitle("Select NLXWB file");
+        nlxwbFileChooser.setAcceptAllFileFilterUsed(false);
+
+        FileNameExtensionFilter nlxwbFilter = new FileNameExtensionFilter("NLXWB Files", "nlxwb");
+        nlxwbFileChooser.setFileFilter(nlxwbFilter);
+
+        int userSelection = nlxwbFileChooser.showOpenDialog(null);
+
+        if (userSelection != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File selectedNLXWB = nlxwbFileChooser.getSelectedFile();
+        boolean validOffsets;
+
+        try {
+            validOffsets = ValidOffsetsChecker.checkValidOffsets(selectedNLXWB);
+        }
+        catch (Exception e) {
+            return;
+        }
+
+        if (selectedNLXWB.getName().equals("STREAM_GEN_Music.nlxwb") && validOffsets) {
+            defaultNLXWB = selectedNLXWB;
+            nlxwbFilePathLabel.setText("Selected NLXWB: " + defaultNLXWB.getAbsolutePath());
+            defaultNLXWBLabel.setText(defaultNLXWB.getAbsolutePath());
+            populateSongsForNLXWB("STREAM_GEN_Music");
+            saveSettingsToFile();
+
+            if (jobQueueModel != null) {
+                jobQueueModel.clear();
+            }
+        }
+        else if (selectedNLXWB.getName().equals("FE_GEN_Music.nlxwb") && validOffsets) {
+            defaultNLXWB = selectedNLXWB;
+            nlxwbFilePathLabel.setText("Selected NLXWB: " + defaultNLXWB.getAbsolutePath());
+            defaultNLXWBLabel.setText(defaultNLXWB.getAbsolutePath());
+            populateSongsForNLXWB("FE_GEN_Music");
+            saveSettingsToFile();
+
+            if (jobQueueModel != null) {
+                jobQueueModel.clear();
+            }
+        }
+        else {
+            JOptionPane.showMessageDialog(this, "This isn't the correct NLXWB");
+        }
+    }
+
+    private void saveSettingsToFile() {
+        try (PrintWriter writer = new PrintWriter(new FileOutputStream("settings.txt"))) {
+            writer.println("defaultSavedDSPFolder:" + (defaultSavedDSPFolder != null ? defaultSavedDSPFolder.getAbsolutePath() : "None"));
+            writer.println("defaultOutputFolder:" + (defaultOutputFolder != null ? defaultOutputFolder.getAbsolutePath() : "None"));
+            writer.println("defaultNLXWB:" + (defaultNLXWB != null ? defaultNLXWB : "None"));
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Failed to save settings: " + e.getMessage());
+        }
+    }
+
+    private void resetReplacer() {
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to reset the replacer along with the settings?\nThis will reset the replacer as if it was never run before.",
+                "Confirm Reset",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        defaultSavedDSPFolder = null;
+
+        if (defaultDSPFolderLabel != null) {
+            defaultDSPFolderLabel.setText("None");
+        }
+
+        defaultOutputFolder = null;
+
+        if (defaultOutputFolderLabel != null) {
+            defaultOutputFolderLabel.setText("None");
+        }
+
+        defaultNLXWB = null;
+
+        if (defaultNLXWBLabel != null) {
+            defaultNLXWBLabel.setText("None");
+        }
+
+        try (PrintWriter writer = new PrintWriter(new FileOutputStream("settings.txt"))) {
+            writer.println("defaultSavedDSPFolder:None");
+            writer.println("defaultOutputFolder:None");
+            writer.println("defaultNLXWB:None");
+
+            JOptionPane.showMessageDialog(this, "Replacer has been reset.");
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Failed to reset replacer: " + e.getMessage());
+        }
     }
 
     private String[] getSongNameArray() {
@@ -582,12 +842,16 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             }
         }
         else {
-            JOptionPane.showMessageDialog(this, "This isn't the correct NLXWB. The correct one is STREAM_GEN_Music.nlxwb");
+            JOptionPane.showMessageDialog(this, "This isn't the correct NLXWB");
         }
     }
 
     private void populateSongsForNLXWB(String nlxwbType) {
         ArrayList<String> songs = new ArrayList<>();
+
+        if (nlxwbType.endsWith(".nlxwb")) {
+            nlxwbType = nlxwbType.substring(0, nlxwbType.lastIndexOf(".nlxwb"));
+        }
 
         if (nlxwbType.equals("STREAM_GEN_Music")) {
             for (Song song : StrikersChargedConstants.STRIKERS_CHARGED_SONGS) {
@@ -684,17 +948,24 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
             File selectedNLXWB = nlxwbFileChooser.getSelectedFile();
 
-            JFileChooser dumpOutputFolderChooser = new JFileChooser();
-            dumpOutputFolderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-            dumpOutputFolderChooser.setDialogTitle("Select Dump Output Folder");
-            dumpOutputFolderChooser.setAcceptAllFileFilterUsed(false);
-            int result = dumpOutputFolderChooser.showOpenDialog(this);
+            File dumpOutputFolder;
 
-            if (result != JFileChooser.APPROVE_OPTION) {
-                return;
+            if (savedOutputFolder == null || !savedOutputFolder.exists()) {
+                JFileChooser dumpOutputFolderChooser = new JFileChooser();
+                dumpOutputFolderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                dumpOutputFolderChooser.setDialogTitle("Select Dump Output Folder");
+                dumpOutputFolderChooser.setAcceptAllFileFilterUsed(false);
+                int result = dumpOutputFolderChooser.showOpenDialog(this);
+
+                if (result != JFileChooser.APPROVE_OPTION) {
+                    return;
+                }
+
+                dumpOutputFolder = dumpOutputFolderChooser.getSelectedFile();
             }
-
-            File dumpOutputFolder = dumpOutputFolderChooser.getSelectedFile();
+            else {
+                dumpOutputFolder = savedOutputFolder;
+            }
 
             try {
                 SongDumper.dumpAllSongs(selectedNLXWB, dumpOutputFolder);
