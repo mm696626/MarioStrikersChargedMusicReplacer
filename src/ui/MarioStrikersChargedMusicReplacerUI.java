@@ -258,7 +258,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
         settingsGBC.gridx = 0;
         settingsGBC.gridy = 1;
-        settingsPanel.add(new JLabel("Default Output Folder:"), settingsGBC);
+        settingsPanel.add(new JLabel("Default Dump Output Folder:"), settingsGBC);
 
         defaultOutputFolderLabel = new JLabel(defaultOutputFolder != null ? defaultOutputFolder.getAbsolutePath() : "None");
         settingsGBC.gridx = 1;
@@ -383,7 +383,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
     private void chooseDefaultOutputFolder() {
         JFileChooser defaultOutputFolderChooser = new JFileChooser();
         defaultOutputFolderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        defaultOutputFolderChooser.setDialogTitle("Select Default Output Folder");
+        defaultOutputFolderChooser.setDialogTitle("Select Default Dump Output Folder");
         defaultOutputFolderChooser.setAcceptAllFileFilterUsed(false);
         int result = defaultOutputFolderChooser.showOpenDialog(this);
 
