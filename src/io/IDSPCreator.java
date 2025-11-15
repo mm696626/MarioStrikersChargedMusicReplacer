@@ -131,6 +131,19 @@ public class IDSPCreator {
     }
 
     private static void padDSPFileTo0x20(File dspFile) throws IOException {
+        try (RandomAccessFile raf = new RandomAccessFile(dspFile, "rw")) {
+            long length = raf.length();
+            long pad = (0x20 - (length % 0x20)) & 0x1F;
+
+            if (pad > 0) {
+                backupDSPFile(dspFile);
+                raf.seek(length);
+                raf.write(new byte[(int)pad]);
+            }
+        }
+    }
+
+    private static void backupDSPFile(File dspFile) throws IOException {
         String dspFileName = dspFile.getName();
         int dot = dspFileName.lastIndexOf('.');
         String backupName;
@@ -144,17 +157,5 @@ public class IDSPCreator {
         File backupDSPFile = new File(dspFile.getParentFile(), backupName);
 
         Files.copy(dspFile.toPath(), backupDSPFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-        try (RandomAccessFile raf = new RandomAccessFile(dspFile, "rw")) {
-
-            long length = raf.length();
-            long pad = (0x20 - (length % 0x20)) & 0x1F;
-
-            if (pad > 0) {
-                raf.seek(length);
-                raf.write(new byte[(int)pad]);
-            }
-        }
     }
-
 }
