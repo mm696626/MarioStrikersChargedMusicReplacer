@@ -61,7 +61,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
     }
 
     private void generateUI() {
-
         JTabbedPane tabbedPane = new JTabbedPane();
 
         JPanel musicReplacerPanel = new JPanel();
@@ -69,6 +68,8 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
         JPanel songPanel = new JPanel(new GridBagLayout());
         songPanel.setBorder(BorderFactory.createTitledBorder("Song Selection"));
+        songPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // important for BoxLayout
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -83,11 +84,9 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
         JLabel filterLabel = new JLabel("Search Songs:");
         JTextField songSearchField = new JTextField();
-
         gbc.gridx = 0;
         gbc.gridy = 2;
         songPanel.add(filterLabel, gbc);
-
         gbc.gridx = 1;
         songPanel.add(songSearchField, gbc);
 
@@ -95,43 +94,33 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             private void filterSongs() {
                 String filterText = songSearchField.getText().toLowerCase();
                 String[] songNameArray = getSongNameArray();
-
                 String currentSelection = (String) songSelector.getSelectedItem();
-
                 ArrayList<String> filtered = new ArrayList<>();
                 for (String song : songNameArray) {
                     if (song.toLowerCase().contains(filterText)) {
                         filtered.add(song);
                     }
                 }
-
                 Collections.sort(filtered);
                 DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(filtered.toArray(new String[0]));
                 songSelector.setModel(model);
-
                 if (currentSelection != null && filtered.contains(currentSelection)) {
                     songSelector.setSelectedItem(currentSelection);
                 }
             }
 
             @Override
-            public void insertUpdate(DocumentEvent e) {
-                filterSongs();
-            }
-
+            public void insertUpdate(DocumentEvent e) { filterSongs(); }
             @Override
-            public void removeUpdate(DocumentEvent e) {
-                filterSongs();
-            }
-
+            public void removeUpdate(DocumentEvent e) { filterSongs(); }
             @Override
-            public void changedUpdate(DocumentEvent e) {
-                filterSongs();
-            }
+            public void changedUpdate(DocumentEvent e) { filterSongs(); }
         });
 
         JPanel dumpReplacePanel = new JPanel(new GridBagLayout());
         dumpReplacePanel.setBorder(BorderFactory.createTitledBorder("Dump/Replace Songs"));
+        dumpReplacePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         GridBagConstraints dumpReplaceGBC = new GridBagConstraints();
         dumpReplaceGBC.insets = new Insets(5, 5, 5, 5);
         dumpReplaceGBC.fill = GridBagConstraints.HORIZONTAL;
@@ -158,7 +147,6 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
         selectNLXWB = new JButton("Select NLXWB");
         selectNLXWB.addActionListener(this);
-
         nlxwbFilePathLabel = new JLabel("No NLXWB file selected");
 
         autoAddToQueue = new JCheckBox("Automatically Add DSP Pairs from DSP Folder to Queue");
@@ -176,13 +164,11 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 2;
         dumpReplacePanel.add(replaceSong, dumpReplaceGBC);
-
         dumpReplaceGBC.gridx = 1;
         dumpReplacePanel.add(modifyWithRandomSongs, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 3;
         dumpReplacePanel.add(dumpAllSongsFromNLXWB, dumpReplaceGBC);
-
         dumpReplaceGBC.gridx = 1;
         dumpReplacePanel.add(createIDSP, dumpReplaceGBC);
 
@@ -196,21 +182,16 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 6;
         dumpReplacePanel.add(autoAddToQueue, dumpReplaceGBC);
-
         dumpReplaceGBC.gridx = 1;
         dumpReplacePanel.add(deleteDSPAfterModify, dumpReplaceGBC);
 
-        musicReplacerPanel.add(songPanel);
-        musicReplacerPanel.add(Box.createVerticalStrut(10));
-        musicReplacerPanel.add(dumpReplacePanel);
-
         JPanel queuePanel = new JPanel(new BorderLayout());
         queuePanel.setBorder(BorderFactory.createTitledBorder("Batch Replacement Job Queue"));
+        queuePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         jobQueueModel = new DefaultListModel<>();
         jobQueueList = new JList<>(jobQueueModel);
         jobQueueList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
         JScrollPane scrollPane = new JScrollPane(jobQueueList);
 
         JPanel queueButtonPanel = new JPanel(new GridLayout(1, 4, 5, 5));
@@ -232,10 +213,15 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         queuePanel.add(scrollPane, BorderLayout.CENTER);
         queuePanel.add(queueButtonPanel, BorderLayout.SOUTH);
 
-        JPanel musicReplacerTabPanel = new JPanel();
-        musicReplacerTabPanel.add(musicReplacerPanel);
+        musicReplacerPanel.add(songPanel);
+        musicReplacerPanel.add(Box.createVerticalStrut(10));
+        musicReplacerPanel.add(dumpReplacePanel);
         musicReplacerPanel.add(Box.createVerticalStrut(10));
         musicReplacerPanel.add(queuePanel);
+
+        JPanel musicReplacerTabPanel = new JPanel(new BorderLayout());
+        musicReplacerTabPanel.add(musicReplacerPanel, BorderLayout.CENTER);
+
         tabbedPane.addTab("Music Replacer", musicReplacerTabPanel);
 
         JPanel settingsPanel = new JPanel(new GridBagLayout());
@@ -243,8 +229,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         settingsGBC.insets = new Insets(5, 5, 5, 5);
         settingsGBC.fill = GridBagConstraints.HORIZONTAL;
 
-        settingsGBC.gridx = 0;
-        settingsGBC.gridy = 0;
+        settingsGBC.gridx = 0; settingsGBC.gridy = 0;
         settingsPanel.add(new JLabel("Default DSP Folder:"), settingsGBC);
 
         defaultDSPFolderLabel = new JLabel(defaultSavedDSPFolder != null ? defaultSavedDSPFolder.getAbsolutePath() : "None");
@@ -256,8 +241,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         settingsGBC.gridx = 2;
         settingsPanel.add(chooseDefaultDSPButton, settingsGBC);
 
-        settingsGBC.gridx = 0;
-        settingsGBC.gridy = 1;
+        settingsGBC.gridx = 0; settingsGBC.gridy = 1;
         settingsPanel.add(new JLabel("Default Dump Output Folder:"), settingsGBC);
 
         defaultOutputFolderLabel = new JLabel(defaultOutputFolder != null ? defaultOutputFolder.getAbsolutePath() : "None");
@@ -269,8 +253,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         settingsGBC.gridx = 2;
         settingsPanel.add(chooseDefaultOutputFolderButton, settingsGBC);
 
-        settingsGBC.gridx = 0;
-        settingsGBC.gridy = 2;
+        settingsGBC.gridx = 0; settingsGBC.gridy = 2;
         settingsPanel.add(new JLabel("Default NLXWB:"), settingsGBC);
 
         defaultNLXWBLabel = new JLabel(defaultNLXWB != null ? defaultNLXWB.getAbsolutePath() : "None");
@@ -284,8 +267,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
         JButton resetReplacerButton = new JButton("Reset Replacer");
         resetReplacerButton.addActionListener(e -> resetReplacer());
-        settingsGBC.gridx = 0;
-        settingsGBC.gridy = 3;
+        settingsGBC.gridx = 0; settingsGBC.gridy = 3;
         settingsGBC.gridwidth = 3;
         settingsPanel.add(resetReplacerButton, settingsGBC);
 
