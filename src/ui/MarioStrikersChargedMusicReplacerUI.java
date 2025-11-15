@@ -1112,60 +1112,61 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
                 return;
             }
 
-            boolean strikersChargedFormat = false;
-
-            int response = JOptionPane.showConfirmDialog(
+            String[] formatOptions = { "Super Mario Strikers", "Mario Strikers Charged" };
+            String selectedFormat = (String) JOptionPane.showInputDialog(
                     this,
-                    "Do you want to create one in the Super Mario Strikers or Strikers Charged format?\n(No will give you the Super Mario Strikers format)",
-                    "Format?",
-                    JOptionPane.YES_NO_OPTION
+                    "Choose an IDSP format:",
+                    "IDSP Format?",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    formatOptions,
+                    formatOptions[0]
             );
 
-            if (response == JOptionPane.YES_OPTION) {
-                strikersChargedFormat = true;
-            }
+            if (selectedFormat != null) {
+                boolean strikersChargedFormat = selectedFormat.equals("Mario Strikers Charged");
 
-            try {
-                if (strikersChargedFormat) {
+                try {
+                    if (strikersChargedFormat) {
+                        String[] musicOptions = { "Menu Music", "Gameplay Music" };
+                        String selectedMusic = (String) JOptionPane.showInputDialog(
+                                this,
+                                "Choose which type of music the file should use:",
+                                "Music Type",
+                                JOptionPane.QUESTION_MESSAGE,
+                                null,
+                                musicOptions,
+                                musicOptions[0]
+                        );
 
-                    boolean isStreamFormat = false;
+                        boolean isStreamFormat = "Gameplay Music".equals(selectedMusic);
 
-                    response = JOptionPane.showConfirmDialog(
-                            this,
-                            "Do you want to create one that the gameplay music uses?\n(No will give you one that the menu music would use)",
-                            "Format?",
-                            JOptionPane.YES_NO_OPTION
-                    );
-
-                    if (response == JOptionPane.YES_OPTION) {
-                        isStreamFormat = true;
-                    }
-
-                    IDSPCreator.createStrikersChargedIDSPFile(leftChannelFile, rightChannelFile, idspFile, isStreamFormat);
-                }
-                else {
-                    int interleave;
-
-                    if (idspFile.exists()) {
-                        try (RandomAccessFile idspRaf = new RandomAccessFile(idspFile, "r")) {
-                            idspRaf.seek(0x04);
-                            interleave = idspRaf.readInt();
+                        if (idspFile.exists()) {
+                            idspFile.delete();
                         }
 
-                        idspFile.delete();
-                        IDSPCreator.createSuperMarioStrikersIDSPFile(leftChannelFile, rightChannelFile, idspFile, interleave);
-                    }
-                    else {
-                        //I used 0x6B40 for interleave since it's the most common in Super Mario Strikers
-                        IDSPCreator.createSuperMarioStrikersIDSPFile(leftChannelFile, rightChannelFile, idspFile, 0x6B40);
-                    }
-                }
+                        IDSPCreator.createStrikersChargedIDSPFile(leftChannelFile, rightChannelFile, idspFile, isStreamFormat);
+                    } else {
+                        int interleave;
 
-                JOptionPane.showMessageDialog(this, "IDSP file has been created!");
-            }
-            catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "The IDSP file couldn't be created!");
-                return;
+                        if (idspFile.exists()) {
+                            try (RandomAccessFile idspRaf = new RandomAccessFile(idspFile, "r")) {
+                                idspRaf.seek(0x04);
+                                interleave = idspRaf.readInt();
+                            }
+
+                            idspFile.delete();
+                            IDSPCreator.createSuperMarioStrikersIDSPFile(leftChannelFile, rightChannelFile, idspFile, interleave);
+                        } else {
+                            IDSPCreator.createSuperMarioStrikersIDSPFile(leftChannelFile, rightChannelFile, idspFile, 0x6B40);
+                        }
+                    }
+
+                    JOptionPane.showMessageDialog(this, "IDSP file has been created!");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "The IDSP file couldn't be created!");
+                    return;
+                }
             }
         }
 
