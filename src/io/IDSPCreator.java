@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 public class IDSPCreator {
 
@@ -72,6 +74,10 @@ public class IDSPCreator {
     }
 
     public static void createSuperMarioStrikersIDSPFile(File leftFile, File rightFile, File idspFile, int interleave) throws IOException {
+        //pad audio data to be divisible by 0x20 since Super Mario Strikers doesn't like it
+        padDSPFileTo0x20(leftFile);
+        padDSPFileTo0x20(rightFile);
+
         try (RandomAccessFile left = new RandomAccessFile(leftFile, "r");
              RandomAccessFile right = new RandomAccessFile(rightFile, "r");
              FileOutputStream out = new FileOutputStream(idspFile)) {
@@ -119,4 +125,32 @@ public class IDSPCreator {
                 (byte) (value & 0xFF)
         };
     }
+
+    private static void padDSPFileTo0x20(File dspFile) throws IOException {
+        String dspFileName = dspFile.getName();
+        int dot = dspFileName.lastIndexOf('.');
+        String backupName;
+
+        if (dot != -1) {
+            backupName = dspFileName.substring(0, dot) + "_backup" + dspFileName.substring(dot);
+        } else {
+            backupName = dspFileName + "_backup";
+        }
+
+        File backupDSPFile = new File(dspFile.getParentFile(), backupName);
+
+        Files.copy(dspFile.toPath(), backupDSPFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        try (RandomAccessFile raf = new RandomAccessFile(dspFile, "rw")) {
+
+            long length = raf.length();
+            long pad = (0x20 - (length % 0x20)) & 0x1F;
+
+            if (pad > 0) {
+                raf.seek(length);
+                raf.write(new byte[(int)pad]);
+            }
+        }
+    }
+
 }

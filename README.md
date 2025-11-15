@@ -22,14 +22,14 @@
 * IDSP Header
     * 0x04 bytes - File magic (always IDSP)
     * 0x04 bytes - Interleave Chunk Size
-    * 0x04 bytes - Total Audio Data Size per Channel
+    * 0x04 bytes - Total Audio Data Size per Channel (must be divisible by 0x20 in Super Mario Strikers)
     * 0x60 bytes - Left Channel DSP Header
     * 0x60 bytes - Right Channel DSP Header
 
 * The Rest of the IDSP
-    * Left Channel Data Chunks that are the size defined in the header (last chunk is padded. Super Mario Strikers does not do this)
-    * Right Channel Data Chunks that are the size defined in the header (last chunk is padded. Super Mario Strikers does not do this)
-    * 0x14 bytes of 0x30 (this is the footer. Super Mario Strikers does not have this)
+    * Left Channel Data Chunks that are the size defined in the header (last chunk is padded. Super Mario Strikers does not pad)
+    * Right Channel Data Chunks that are the size defined in the header (last chunk is padded. Super Mario Strikers does not pad)
+    * 0x14 bytes of 0x30 (this is the footer. Super Mario Strikers does not have the footer)
 
 ### Special Thanks/Credits
 * This documentation on the IDSP header and DSP format helped a lot too
