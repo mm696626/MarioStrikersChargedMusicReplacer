@@ -22,7 +22,7 @@
 * IDSP Header
     * 0x04 bytes - File magic (always IDSP)
     * 0x04 bytes - Interleave Chunk Size
-    * 0x04 bytes - Total Audio Data Size per Channel (must be divisible by 0x20 in Super Mario Strikers)
+    * 0x04 bytes - Total Audio Data Size per Channel (must be divisible by 0x20)
     * 0x60 bytes - Left Channel DSP Header
     * 0x60 bytes - Right Channel DSP Header
 

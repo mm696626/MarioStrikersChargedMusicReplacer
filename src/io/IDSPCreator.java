@@ -14,6 +14,10 @@ public class IDSPCreator {
     private static final int INTERLEAVE_CHUNK_SIZE_MENU = 0xD680;
 
     public static void createStrikersChargedIDSPFile(File leftFile, File rightFile, File idspFile, boolean isStream) throws IOException {
+        //pad audio data to be divisible by 0x20 just in case Strikers Charged doesn't like it
+        padDSPFileTo0x20(leftFile);
+        padDSPFileTo0x20(rightFile);
+
         try (RandomAccessFile left = new RandomAccessFile(leftFile, "r");
              RandomAccessFile right = new RandomAccessFile(rightFile, "r");
              FileOutputStream out = new FileOutputStream(idspFile)) {
