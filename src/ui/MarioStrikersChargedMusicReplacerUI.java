@@ -1094,7 +1094,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
                 return;
             }
 
-            String[] formatOptions = { "Super Mario Strikers", "Mario Strikers Charged" };
+            String[] formatOptions = { "Mario Strikers Charged", "Super Mario Strikers" };
             String selectedFormat = (String) JOptionPane.showInputDialog(
                     this,
                     "Choose an IDSP format:",
@@ -1110,7 +1110,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
                 try {
                     if (strikersChargedFormat) {
-                        String[] musicOptions = { "Menu Music", "Gameplay Music" };
+                        String[] musicOptions = { "Gameplay Music", "Menu Music" };
                         String selectedMusic = (String) JOptionPane.showInputDialog(
                                 this,
                                 "Choose which type of music the file should use:",
