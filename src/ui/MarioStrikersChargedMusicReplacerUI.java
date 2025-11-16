@@ -1110,24 +1110,20 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
                 try {
                     if (strikersChargedFormat) {
-                        String[] musicOptions = { "Gameplay Music", "Menu Music" };
-                        String selectedMusic = (String) JOptionPane.showInputDialog(
-                                this,
-                                "Choose which type of music the file should use:",
-                                "Music Type",
-                                JOptionPane.QUESTION_MESSAGE,
-                                null,
-                                musicOptions,
-                                musicOptions[0]
-                        );
-
-                        boolean isStreamFormat = "Gameplay Music".equals(selectedMusic);
+                        int interleave;
 
                         if (idspFile.exists()) {
-                            idspFile.delete();
-                        }
+                            try (RandomAccessFile idspRaf = new RandomAccessFile(idspFile, "r")) {
+                                idspRaf.seek(0x04);
+                                interleave = idspRaf.readInt();
+                            }
 
-                        IDSPCreator.createStrikersChargedIDSPFile(leftChannelFile, rightChannelFile, idspFile, isStreamFormat);
+                            idspFile.delete();
+                            IDSPCreator.createStrikersChargedIDSPFile(leftChannelFile, rightChannelFile, idspFile, interleave);
+                        }
+                        else {
+                            IDSPCreator.createStrikersChargedIDSPFile(leftChannelFile, rightChannelFile, idspFile, 0x6B40);
+                        }
                     } else {
                         int interleave;
 
