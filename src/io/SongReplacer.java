@@ -49,7 +49,7 @@ public class SongReplacer {
             return false;
         }
 
-        IDSPCreator.createStrikersChargedIDSPFile(leftChannelFile, rightChannelFile, idspFile, isStream);
+        IDSPCreator.createStrikersChargedIDSPFileForNLXWB(leftChannelFile, rightChannelFile, idspFile, isStream);
         byte[] idspFileBytes = Files.readAllBytes(idspFile.toPath());
 
         if (idspFile.length() > allowedFileSize) {
