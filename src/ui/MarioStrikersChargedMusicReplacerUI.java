@@ -403,7 +403,8 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
         if (selectedNLXWB.getName().equals("STREAM_GEN_Music.nlxwb") && validOffsets) {
             defaultNLXWB = selectedNLXWB;
-            nlxwbFilePathLabel.setText("Selected NLXWB: " + defaultNLXWB.getAbsolutePath());
+            nlxwbPath = selectedNLXWB.getAbsolutePath();
+            nlxwbFilePathLabel.setText("Selected NLXWB: " + selectedNLXWB.getAbsolutePath());
             defaultNLXWBLabel.setText(defaultNLXWB.getAbsolutePath());
             populateSongsForNLXWB("STREAM_GEN_Music");
             saveSettingsToFile();
@@ -414,7 +415,8 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         }
         else if (selectedNLXWB.getName().equals("FE_GEN_Music.nlxwb") && validOffsets) {
             defaultNLXWB = selectedNLXWB;
-            nlxwbFilePathLabel.setText("Selected NLXWB: " + defaultNLXWB.getAbsolutePath());
+            nlxwbPath = selectedNLXWB.getAbsolutePath();
+            nlxwbFilePathLabel.setText("Selected NLXWB: " + selectedNLXWB.getAbsolutePath());
             defaultNLXWBLabel.setText(defaultNLXWB.getAbsolutePath());
             populateSongsForNLXWB("FE_GEN_Music");
             saveSettingsToFile();
