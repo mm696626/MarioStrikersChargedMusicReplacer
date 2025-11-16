@@ -70,4 +70,8 @@ public class DSPPair {
     public File getRight() {
         return right;
     }
+
+    public String getDisplayName() {
+        return displayName;
+    }
 }

@@ -24,7 +24,7 @@ import java.util.List;
 
 public class MarioStrikersChargedMusicReplacerUI extends JFrame implements ActionListener {
 
-    private JButton pickLeftChannel, pickRightChannel, dumpAllSongsFromNLXWB, replaceSong, createIDSP, selectNLXWB;
+    private JButton pickLeftChannel, pickRightChannel, dumpAllSongsFromNLXWB, replaceSong, createIDSP, createIDSPFromFolder, selectNLXWB;
     private String leftChannelPath = "";
     private String rightChannelPath = "";
 
@@ -145,6 +145,9 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         createIDSP = new JButton("Create IDSP");
         createIDSP.addActionListener(this);
 
+        createIDSPFromFolder = new JButton("Create IDSPs From DSP Folder");
+        createIDSPFromFolder.addActionListener(this);
+
         selectNLXWB = new JButton("Select NLXWB");
         selectNLXWB.addActionListener(this);
         nlxwbFilePathLabel = new JLabel("No NLXWB file selected");
@@ -173,11 +176,12 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         dumpReplacePanel.add(createIDSP, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 4;
-        dumpReplaceGBC.gridwidth = 2;
         dumpReplacePanel.add(selectNLXWB, dumpReplaceGBC);
 
+        dumpReplaceGBC.gridx = 1; dumpReplaceGBC.gridy = 4;
+        dumpReplacePanel.add(createIDSPFromFolder, dumpReplaceGBC);
+
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 5;
-        dumpReplaceGBC.gridwidth = 1;
         dumpReplacePanel.add(nlxwbFilePathLabel, dumpReplaceGBC);
 
         dumpReplaceGBC.gridx = 0; dumpReplaceGBC.gridy = 6;
@@ -921,7 +925,54 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
             JOptionPane.showMessageDialog(null, "Failed to create backup: " + ex.getMessage());
         }
     }
-    
+
+    private void readInterleavesFromFiles(File[] files) {
+        if (files == null) return;
+
+        Map<File, Integer> fileInterleaveMap = new LinkedHashMap<>();
+
+        for (File file : files) {
+            try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
+                raf.seek(0x04);
+                int value = raf.readInt();
+                fileInterleaveMap.put(file, value);
+            } catch (Exception ex) {
+                return;
+            }
+        }
+
+        if (!fileInterleaveMap.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+
+            for (Map.Entry<File, Integer> entry : fileInterleaveMap.entrySet()) {
+                sb.append(entry.getKey().getName())
+                        .append(" → 0x")
+                        .append(Integer.toHexString(entry.getValue()).toUpperCase())
+                        .append("\n");
+            }
+
+            JTextArea textArea = new JTextArea(sb.toString());
+            textArea.setEditable(false);
+            textArea.setLineWrap(true);
+            textArea.setWrapStyleWord(true);
+
+            JScrollPane scrollPane = new JScrollPane(
+                    textArea,
+                    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                    JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+            );
+
+            scrollPane.setPreferredSize(new Dimension(500, 350));
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    scrollPane,
+                    "Interleave Summary (Use this to replace individual IDSP files since this matters for replacement)",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == pickLeftChannel) {
@@ -1148,6 +1199,134 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
                     return;
                 }
             }
+        }
+
+        if (e.getSource() == createIDSPFromFolder) {
+            File dspFolderForCreation;
+
+            if (savedDSPFolder == null || !savedDSPFolder.exists()) {
+                JFileChooser dspFolderChooser = new JFileChooser();
+                dspFolderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                dspFolderChooser.setDialogTitle("Select DSP Folder for Creating IDSPs");
+                dspFolderChooser.setAcceptAllFileFilterUsed(false);
+                int result = dspFolderChooser.showOpenDialog(this);
+
+                if (result != JFileChooser.APPROVE_OPTION) {
+                    return;
+                }
+
+                dspFolderForCreation = dspFolderChooser.getSelectedFile();
+            }
+            else {
+                dspFolderForCreation = savedDSPFolder;
+            }
+
+            ArrayList<DSPPair> dspPairs = new ArrayList<>();
+
+            if (dspFolderForCreation != null) {
+                dspPairs = DSPPair.detectDSPPairs(dspFolderForCreation);
+            }
+
+            if (dspPairs.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No DSP pairs exist in the DSP folder!");
+                return;
+            }
+
+            JFileChooser outputFolderChooser = new JFileChooser();
+            outputFolderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            outputFolderChooser.setDialogTitle("Select Output Folder");
+            outputFolderChooser.setAcceptAllFileFilterUsed(false);
+            int result = outputFolderChooser.showOpenDialog(this);
+
+            if (result != JFileChooser.APPROVE_OPTION) {
+                return;
+            }
+
+            File outputFolder = outputFolderChooser.getSelectedFile();
+
+            String[] formatOptions = { "Mario Strikers Charged", "Super Mario Strikers" };
+            String selectedFormat = (String) JOptionPane.showInputDialog(
+                    this,
+                    "Choose an IDSP format:",
+                    "IDSP Format?",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    formatOptions,
+                    formatOptions[0]
+            );
+
+            File[] files = outputFolder.listFiles((_, name) -> name.toLowerCase().endsWith(".idsp"));
+
+            Set<Integer> interleaves;
+
+            if (files != null) {
+                interleaves = new HashSet<>();
+                for (int i=0; i<files.length; i++) {
+                    try (RandomAccessFile idspRaf = new RandomAccessFile(files[i], "r")) {
+                        idspRaf.seek(0x04);
+                        interleaves.add(idspRaf.readInt());
+                    }
+                    catch (Exception ex) {
+                        return;
+                    }
+                }
+            }
+            else {
+                return;
+            }
+
+            boolean createOutputFolder = false;
+
+            if (interleaves.isEmpty()) {
+                interleaves.add(0x6B40);
+            }
+            else {
+                readInterleavesFromFiles(files);
+                createOutputFolder = true;
+            }
+
+            List<Integer> interleaveList = new ArrayList<>(interleaves);
+
+            for (DSPPair dspPair : dspPairs) {
+                if (selectedFormat != null) {
+                    boolean strikersChargedFormat = selectedFormat.equals("Mario Strikers Charged");
+
+                    for (Integer interleave : interleaveList) {
+                        String baseFileName = dspPair.getDisplayName().trim().replaceAll("[^a-zA-Z0-9_ ]", "_");
+                        File idspFile;
+
+                        String idspFileName = baseFileName + "_" + Integer.toHexString(interleave).toUpperCase() + ".idsp";
+                        if (createOutputFolder) {
+                            File idspSubFolder = new File(outputFolder, "IDSP_Files");
+                            if (!idspSubFolder.exists()) {
+                                idspSubFolder.mkdirs();
+                            }
+
+                            idspFile = new File(idspSubFolder, idspFileName);
+                        }
+                        else {
+                            idspFile = new File(outputFolder, idspFileName);
+                        }
+
+                        if (idspFile.exists()) {
+                            idspFile.delete();
+                        }
+
+                        try {
+                            if (strikersChargedFormat) {
+                                IDSPCreator.createStrikersChargedIDSPFile(dspPair.getLeft(), dspPair.getRight(), idspFile, interleave);
+                            } else {
+                                IDSPCreator.createSuperMarioStrikersIDSPFile(dspPair.getLeft(), dspPair.getRight(), idspFile, interleave);
+                            }
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(this, "The IDSP files couldn't be created!");
+                            return;
+                        }
+                    }
+                }
+            }
+
+            JOptionPane.showMessageDialog(this, "IDSP files have been created!");
         }
 
         if (e.getSource() == modifyWithRandomSongs) {
