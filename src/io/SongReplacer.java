@@ -2,7 +2,6 @@ package io;
 
 import constants.StrikersChargedConstants;
 
-import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Map;
@@ -17,10 +16,6 @@ public class SongReplacer {
         long allowedFileSize;
 
         File resbunFile = new File(nlxwbFile.getParentFile(), nlxwbFile.getName().replace(".nlxwb", ".resbun"));
-        if (!resbunFile.exists()) {
-            JOptionPane.showMessageDialog(null, "Could not find matching .resbun file in the same folder!");
-            return false;
-        }
 
         boolean isStream = nlxwbFile.getName().endsWith("STREAM_GEN_Music.nlxwb");
         boolean isFrontend = nlxwbFile.getName().endsWith("FE_GEN_Music.nlxwb");

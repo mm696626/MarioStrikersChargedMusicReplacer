@@ -1087,7 +1087,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
             int response = JOptionPane.showConfirmDialog(
                     null,
-                    "Do you want to make a backup of the NLXWB file?",
+                    "Do you want to make a backup of the NLXWB and its corresponding RESBUN file?",
                     "Backup NLXWB",
                     JOptionPane.YES_NO_OPTION
             );
@@ -1522,7 +1522,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
             int backupNLXWBresponse = JOptionPane.showConfirmDialog(
                     this,
-                    "This will modify the NLXWB for all randomizations.\nDo you want to back up the NLXWB file first?",
+                    "This will modify the NLXWB for all randomizations.\nDo you want to back up the NLXWB and corresponding RESBUN file first?",
                     "Backup?",
                     JOptionPane.YES_NO_OPTION
             );
@@ -1625,7 +1625,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
             int response = JOptionPane.showConfirmDialog(
                     this,
-                    "This will modify the NLXWB for all jobs in the queue.\nDo you want to back up the NLXWB file first?",
+                    "This will modify the NLXWB for all jobs in the queue.\nDo you want to back up the NLXWB file and corresponding RESBUN file first?",
                     "Backup?",
                     JOptionPane.YES_NO_OPTION
             );
