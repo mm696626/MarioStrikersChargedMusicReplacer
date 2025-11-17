@@ -926,6 +926,27 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
         }
     }
 
+    private static File getRESBUNFileName(File resbunFile, String timestamp) {
+        String baseName = resbunFile.getName();
+        int extIndex = baseName.lastIndexOf(".");
+        if (extIndex != -1) {
+            baseName = baseName.substring(0, extIndex);
+        }
+
+        String backupFileName = baseName + "_Backup_" + timestamp + ".resbun";
+        return new File(resbunFile.getParent(), backupFileName);
+    }
+
+    private void backupRESBUN(File resbunFile) {
+        try {
+            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            File backupFile = getRESBUNFileName(resbunFile, timestamp);
+            Files.copy(resbunFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, "Failed to create backup: " + ex.getMessage());
+        }
+    }
+
     private void readInterleavesFromFiles(File[] files) {
         if (files == null) return;
 
@@ -1057,6 +1078,13 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
                 return;
             }
 
+            File resbunFile = new File(nlxwbFile.getParentFile(), nlxwbFile.getName().replace(".nlxwb", ".resbun"));
+
+            if (!resbunFile.exists()) {
+                JOptionPane.showMessageDialog(this, "The RESBUN file doesn't exist!");
+                return;
+            }
+
             int response = JOptionPane.showConfirmDialog(
                     null,
                     "Do you want to make a backup of the NLXWB file?",
@@ -1066,6 +1094,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
             if (response == JOptionPane.YES_OPTION) {
                 backupNLXWB(nlxwbFile);
+                backupRESBUN(resbunFile);
             }
 
             String selectedSong = (String) songSelector.getSelectedItem();
@@ -1342,6 +1371,13 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
                 return;
             }
 
+            File resbunFile = new File(nlxwbFile.getParentFile(), nlxwbFile.getName().replace(".nlxwb", ".resbun"));
+
+            if (!resbunFile.exists()) {
+                JOptionPane.showMessageDialog(this, "The RESBUN file doesn't exist!");
+                return;
+            }
+
             File dspFolderForRandomization;
 
             if (savedDSPFolder == null || !savedDSPFolder.exists()) {
@@ -1493,6 +1529,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
             if (backupNLXWBresponse == JOptionPane.YES_OPTION) {
                 backupNLXWB(nlxwbFile);
+                backupRESBUN(resbunFile);
             }
 
             boolean minimizeRepeats;
@@ -1579,6 +1616,13 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
                 return;
             }
 
+            File resbunFile = new File(nlxwbFile.getParentFile(), nlxwbFile.getName().replace(".nlxwb", ".resbun"));
+
+            if (!resbunFile.exists()) {
+                JOptionPane.showMessageDialog(this, "The RESBUN file doesn't exist!");
+                return;
+            }
+
             int response = JOptionPane.showConfirmDialog(
                     this,
                     "This will modify the NLXWB for all jobs in the queue.\nDo you want to back up the NLXWB file first?",
@@ -1588,6 +1632,7 @@ public class MarioStrikersChargedMusicReplacerUI extends JFrame implements Actio
 
             if (response == JOptionPane.YES_OPTION) {
                 backupNLXWB(nlxwbFile);
+                backupRESBUN(resbunFile);
             }
 
             for (int i = 0; i < jobQueueModel.size(); i++) {

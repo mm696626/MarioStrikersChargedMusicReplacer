@@ -5,7 +5,6 @@ import constants.StrikersChargedConstants;
 import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.TreeMap;
@@ -21,9 +20,6 @@ public class SongReplacer {
         if (!resbunFile.exists()) {
             JOptionPane.showMessageDialog(null, "Could not find matching .resbun file in the same folder!");
             return false;
-        }
-        else {
-            backupRESBUN(resbunFile);
         }
 
         boolean isStream = nlxwbFile.getName().endsWith("STREAM_GEN_Music.nlxwb");
@@ -171,31 +167,6 @@ public class SongReplacer {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private static File getRESBUNFileName(File resbunFile) {
-        String baseName = resbunFile.getName();
-        int extIndex = baseName.lastIndexOf(".");
-        if (extIndex != -1) {
-            baseName = baseName.substring(0, extIndex);
-        }
-
-        String backupFileName = baseName + "_backup" + ".resbun";
-        return new File(resbunFile.getParent(), backupFileName);
-    }
-
-    private static void backupRESBUN(File resbunFile) {
-        try {
-            File backupFile = getRESBUNFileName(resbunFile);
-
-            if (backupFile.exists()) {
-                return;
-            }
-
-            Files.copy(resbunFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(null, "Failed to create backup: " + ex.getMessage());
         }
     }
 }
