@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 
 public class IDSPCreator {
 
@@ -140,26 +138,9 @@ public class IDSPCreator {
             long pad = (0x20 - (length % 0x20)) & 0x1F;
 
             if (pad > 0) {
-                backupDSPFile(dspFile);
                 raf.seek(length);
                 raf.write(new byte[(int)pad]);
             }
         }
-    }
-
-    private static void backupDSPFile(File dspFile) throws IOException {
-        String dspFileName = dspFile.getName();
-        int dot = dspFileName.lastIndexOf('.');
-        String backupName;
-
-        if (dot != -1) {
-            backupName = dspFileName.substring(0, dot) + "_backup" + dspFileName.substring(dot);
-        } else {
-            backupName = dspFileName + "_backup";
-        }
-
-        File backupDSPFile = new File(dspFile.getParentFile(), backupName);
-
-        Files.copy(dspFile.toPath(), backupDSPFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 }
